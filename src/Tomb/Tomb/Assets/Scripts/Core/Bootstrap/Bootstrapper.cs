@@ -4,14 +4,19 @@ using UnityEngine;
 using Tomb.Core.Events;
 using Tomb.Core.Services;
 using Tomb.Core.Debugging;
+using Tomb.Core.Time;
 
 namespace Tomb.Core.Bootstrap
 {
     public sealed class Bootstrapper : MonoBehaviour
     {
+        [Header("Settings")]
+        [SerializeField] private TimeSettings timeSettings;
+
         private ServiceRegistry serviceRegistry;
         private EventBus eventBus;
         private DebugLogger debugLogger;
+        private GameTimeSystem gameTimeSystem;
 
         private void Awake()
         {
@@ -31,6 +36,15 @@ namespace Tomb.Core.Bootstrap
 
             debugLogger = new DebugLogger(eventBus);
             serviceRegistry.Register(debugLogger);
+
+            if (timeSettings == null)
+            {
+                UnityEngine.Debug.LogError("[Bootstrap] Missing TimeSettings asset.");
+                return;
+            }
+
+            gameTimeSystem = new GameTimeSystem(eventBus, debugLogger, timeSettings);
+            serviceRegistry.Register(gameTimeSystem);
 
             debugLogger.Log("Core services initialized.", "Bootstrap");
         }
