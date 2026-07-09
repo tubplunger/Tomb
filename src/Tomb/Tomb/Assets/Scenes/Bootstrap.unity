@@ -320,6 +320,7 @@ GameObject:
   - component: {fileID: 1792446268}
   - component: {fileID: 1792446270}
   - component: {fileID: 1792446269}
+  - component: {fileID: 1792446271}
   m_Layer: 0
   m_Name: Game Time Runner
   m_TagString: Untagged
@@ -364,6 +365,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 684a088a64c9eb740a75027b7f775eac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1792446271
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1792446267}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4c8a42c384062c48bf83e5ae26dcd05, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1936651852

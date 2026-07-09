@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using Tomb.Core.Debugging;
 using Tomb.Core.Events;
+using Tomb.Core.Save;
 
 namespace Tomb.Core.Time
 {
-    public sealed class GameTimeSystem
+    public sealed class GameTimeSystem : Tomb.Core.Save.ISaveable
     {
         private readonly EventBus eventBus;
         private readonly DebugLogger debugLogger;
@@ -23,6 +24,8 @@ namespace Tomb.Core.Time
         public GameTime CurrentTime => currentTime;
         public bool IsPaused => isPaused;
         public float TimeScale => timeScale;
+
+        public string SaveKey => "game_time";
 
         public GameTimeSystem(EventBus eventbus, DebugLogger debugLogger, TimeSettings settings)
         {
@@ -112,6 +115,30 @@ namespace Tomb.Core.Time
                 eventBus.Publish(new GameDayPassedEvent(currentTime));
                 debugLogger.Log($"Day passed: {currentTime}", "Time");
             }
+        }
+
+        public object CaptureState()
+        {
+            return new GameTimeSaveState
+            {
+                day = currentTime.Day,
+                hour = currentTime.Hour,
+                minute = currentTime.Minute,
+                isPaused = isPaused,
+                timeScale = timeScale
+            };
+        }
+
+        public void RestoreState(object state)
+        {
+            if (state is not GameTimeSaveState saveState)
+                return;
+
+            currentTime = new GameTime(saveState.day, saveState.hour, saveState.minute);
+            isPaused = saveState.isPaused;
+            timeScale = saveState.timeScale;
+
+            debugLogger.Log($"Time restored to {currentTime}.", "Time");
         }
     }
 }

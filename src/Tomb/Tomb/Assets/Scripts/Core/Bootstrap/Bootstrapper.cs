@@ -5,6 +5,7 @@ using Tomb.Core.Events;
 using Tomb.Core.Services;
 using Tomb.Core.Debugging;
 using Tomb.Core.Time;
+using Tomb.Core.Save;
 
 namespace Tomb.Core.Bootstrap
 {
@@ -17,6 +18,7 @@ namespace Tomb.Core.Bootstrap
         private EventBus eventBus;
         private DebugLogger debugLogger;
         private GameTimeSystem gameTimeSystem;
+        private SaveSystem saveSystem;
 
         private void Awake()
         {
@@ -46,6 +48,11 @@ namespace Tomb.Core.Bootstrap
             gameTimeSystem = new GameTimeSystem(eventBus, debugLogger, timeSettings);
             serviceRegistry.Register(gameTimeSystem);
 
+            saveSystem = new SaveSystem(eventBus, debugLogger);
+            serviceRegistry.Register(saveSystem);
+
+            saveSystem.Register(gameTimeSystem);
+
             debugLogger.Log("Core services initialized.", "Bootstrap");
         }
 
@@ -60,6 +67,7 @@ namespace Tomb.Core.Bootstrap
             debugLogger?.Dispose();
             eventBus?.Clear();
             serviceRegistry?.Clear();
+            saveSystem?.Dispose();
         }
     }
 }
