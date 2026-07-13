@@ -6,6 +6,7 @@ using Tomb.Core.Services;
 using Tomb.Core.Debugging;
 using Tomb.Core.Time;
 using Tomb.Core.Save;
+using Tomb.Core.Debugging.Overlay;
 
 namespace Tomb.Core.Bootstrap
 {
@@ -19,6 +20,7 @@ namespace Tomb.Core.Bootstrap
         private DebugLogger debugLogger;
         private GameTimeSystem gameTimeSystem;
         private SaveSystem saveSystem;
+        private DebugOverlaySystem debugOverlaySystem;
 
         private void Awake()
         {
@@ -38,6 +40,9 @@ namespace Tomb.Core.Bootstrap
 
             debugLogger = new DebugLogger(eventBus);
             serviceRegistry.Register(debugLogger);
+
+            debugOverlaySystem = new DebugOverlaySystem(eventBus);
+            serviceRegistry.Register(debugOverlaySystem);
 
             if (timeSettings == null)
             {
