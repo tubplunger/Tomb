@@ -7,6 +7,7 @@ using Tomb.Core.Debugging;
 using Tomb.Core.Time;
 using Tomb.Core.Save;
 using Tomb.Core.Debugging.Overlay;
+using Tomb.Core.Debugging.Timeline;
 
 namespace Tomb.Core.Bootstrap
 {
@@ -21,6 +22,7 @@ namespace Tomb.Core.Bootstrap
         private GameTimeSystem gameTimeSystem;
         private SaveSystem saveSystem;
         private DebugOverlaySystem debugOverlaySystem;
+        private EventTimelineSystem eventTimelineSystem;
 
         private void Awake()
         {
@@ -37,6 +39,9 @@ namespace Tomb.Core.Bootstrap
 
             eventBus = new EventBus();
             serviceRegistry.Register(eventBus);
+
+            eventTimelineSystem = new EventTimelineSystem(eventBus);
+            serviceRegistry.Register(eventTimelineSystem);
 
             debugLogger = new DebugLogger(eventBus);
             serviceRegistry.Register(debugLogger);
@@ -69,10 +74,12 @@ namespace Tomb.Core.Bootstrap
 
         private void OnDestroy()
         {
+            saveSystem?.Dispose();
             debugLogger?.Dispose();
+            eventTimelineSystem?.Dispose();
+
             eventBus?.Clear();
             serviceRegistry?.Clear();
-            saveSystem?.Dispose();
         }
     }
 }

@@ -9,13 +9,19 @@ namespace Tomb.Core.Events
     {
         private readonly Dictionary<Type, Delegate> eventTable = new();
 
+        public event Action<IGameEvent> EventPublished;
+
         public void Subscribe<T>(Action<T> listener) where T : IGameEvent
         {
+            if (listener == null)
+                return;
+
             Type eventType = typeof(T);
 
             if (eventTable.TryGetValue(eventType, out Delegate existingDelegate))
             {
-                eventTable[eventType] = Delegate.Combine(existingDelegate, listener);
+                eventTable[eventType] =
+                    Delegate.Combine(existingDelegate, listener);
             }
             else
             {
@@ -25,12 +31,16 @@ namespace Tomb.Core.Events
 
         public void Unsubscribe<T>(Action<T> listener) where T : IGameEvent
         {
+            if (listener == null)
+                return;
+
             Type eventType = typeof(T);
 
             if (!eventTable.TryGetValue(eventType, out Delegate existingDelegate))
                 return;
 
-            Delegate updatedDelegate = Delegate.Remove(existingDelegate, listener);
+            Delegate updatedDelegate =
+                Delegate.Remove(existingDelegate, listener);
 
             if (updatedDelegate == null)
             {
@@ -44,13 +54,46 @@ namespace Tomb.Core.Events
 
         public void Publish<T>(T gameEvent) where T : IGameEvent
         {
+            if (gameEvent == null)
+                return;
+
+            NotifyObservers(gameEvent);
+
             Type eventType = typeof(T);
 
-            if (eventTable.TryGetValue(eventType, out Delegate existingDelegate))
+            if (!eventTable.TryGetValue(eventType, out Delegate existingDelegate))
+                return;
+
+            if (existingDelegate is not Action<T> callbacks)
+                return;
+
+            foreach (Delegate callbackDelegate in callbacks.GetInvocationList())
             {
-                if (existingDelegate is Action<T> callback)
+                try
                 {
-                    callback.Invoke(gameEvent);
+                    ((Action<T>)callbackDelegate).Invoke(gameEvent);
+                }
+                catch (Exception exception)
+                {
+                    UnityEngine.Debug.LogException(exception);
+                }
+            }
+        }
+
+        private void NotifyObservers(IGameEvent gameEvent)
+        {
+            if (EventPublished == null)
+                return;
+
+            foreach (Delegate observerDelegate in EventPublished.GetInvocationList())
+            {
+                try
+                {
+                    ((Action<IGameEvent>)observerDelegate).Invoke(gameEvent);
+                }
+                catch (Exception exception)
+                {
+                    UnityEngine.Debug.LogException(exception);
                 }
             }
         }
@@ -58,6 +101,7 @@ namespace Tomb.Core.Events
         public void Clear()
         {
             eventTable.Clear();
+            EventPublished = null;
         }
     }
 }
