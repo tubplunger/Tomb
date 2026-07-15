@@ -4,6 +4,7 @@ using UnityEngine;
 using Tomb.Core.Debugging;
 using Tomb.Core.Events;
 using Tomb.Core.Save;
+using System;
 
 namespace Tomb.Core.Time
 {
@@ -26,6 +27,8 @@ namespace Tomb.Core.Time
         public float TimeScale => timeScale;
 
         public string SaveKey => "game_time";
+
+        public Type SaveStateType => typeof(GameTimeSaveState);
 
         public GameTimeSystem(EventBus eventbus, DebugLogger debugLogger, TimeSettings settings)
         {
@@ -58,9 +61,9 @@ namespace Tomb.Core.Time
                 AdvanceMinute();
             }
 
-            if (tickTimer >= settings.tickIntervalRealSeconds)
+            while (tickTimer >= settings.tickIntervalRealSeconds)
             {
-                tickTimer = 0f;
+                tickTimer -= settings.tickIntervalRealSeconds;
                 eventBus.Publish(new GameTimeTickEvent(currentTime));
             }
         }
@@ -87,12 +90,21 @@ namespace Tomb.Core.Time
 
         public void SetTimeScale(float newTimeScale)
         {
-            if (newTimeScale < 0f)
-                newTimeScale = 0f;
+            newTimeScale = UnityEngine.Mathf.Max(0.01f, newTimeScale);
+
+            if (UnityEngine.Mathf.Approximately(timeScale, newTimeScale))
+                return;
 
             timeScale = newTimeScale;
-            eventBus.Publish(new GameTimeScaleChangedEvent(timeScale));
-            debugLogger.Log($"Game time scale changed to {timeScale}.", "Time");
+
+            eventBus.Publish(
+                new GameTimeScaleChangedEvent(timeScale)
+            );
+
+            debugLogger.Log(
+                $"Game time scale changed to {timeScale}.",
+                "Time"
+            );
         }
 
         private void AdvanceMinute()

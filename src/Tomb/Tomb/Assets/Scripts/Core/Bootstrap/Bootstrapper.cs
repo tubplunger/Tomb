@@ -23,9 +23,18 @@ namespace Tomb.Core.Bootstrap
         private SaveSystem saveSystem;
         private DebugOverlaySystem debugOverlaySystem;
         private EventTimelineSystem eventTimelineSystem;
+        private static Bootstrapper instance;
 
         private void Awake()
         {
+            if (instance != null && instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            instance = this;
+
             DontDestroyOnLoad(gameObject);
 
             InitializeServices();
@@ -74,12 +83,17 @@ namespace Tomb.Core.Bootstrap
 
         private void OnDestroy()
         {
+            if (instance != this)
+                return;
+
             saveSystem?.Dispose();
             debugLogger?.Dispose();
             eventTimelineSystem?.Dispose();
 
             eventBus?.Clear();
             serviceRegistry?.Clear();
+
+            instance = null;
         }
     }
 }

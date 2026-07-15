@@ -36,14 +36,32 @@ namespace Tomb.Core.Save
             if (saveable == null)
                 return;
 
-            if (string.IsNullOrEmpty(saveable.SaveKey))
+            if (string.IsNullOrWhiteSpace(saveable.SaveKey))
             {
-                debugLogger.Log("Attempted to register saveable with empty Save Key.", "Save");
+                debugLogger.Log(
+                    "Attempted to register saveable with an empty SaveKey.",
+                    "Save"
+                );
+
                 return;
             }
 
-            saveables[saveable.SaveKey] = saveable;
-            debugLogger.Log($"Registered saveable: {saveable.SaveKey}", "Save");
+            if (saveables.ContainsKey(saveable.SaveKey))
+            {
+                debugLogger.Log(
+                    $"Duplicate SaveKey rejected: {saveable.SaveKey}",
+                    "Save"
+                );
+
+                return;
+            }
+
+            saveables.Add(saveable.SaveKey, saveable);
+
+            debugLogger.Log(
+                $"Registered saveable: {saveable.SaveKey}",
+                "Save"
+            );
         }
 
         public void Unregister(ISaveable saveable)
@@ -115,15 +133,33 @@ namespace Tomb.Core.Save
                     return;
                 }
 
+                if (string.IsNullOrWhiteSpace(saveData.saveVersion))
+                {
+                    string reason = "Save file does not contain a version.";
+
+                    debugLogger.Log(reason, "Save");
+                    eventBus.Publish(new LoadFailedEvent(reason));
+                    return;
+                }
+
+                if (saveData.saveVersion != SaveVersion)
+                {
+                    debugLogger.Log(
+                        $"Loading save version {saveData.saveVersion} " +
+                        $"with game version {SaveVersion}.",
+                        "Save"
+                    );
+                }
+
                 foreach (KeyValuePair<string, ISaveable> pair in saveables)
                 {
                     if (!saveData.TryGetSystemState(pair.Key, out string systemJson))
                         continue;
 
-                    Type stateType = pair.Value.CaptureState().GetType();
-                    object restoredState = JsonUtility.FromJson(systemJson, stateType);
-
-                    pair.Value.RestoreState(restoredState);
+                    object restoredState = JsonUtility.FromJson(
+                        systemJson,
+                        pair.Value.SaveStateType
+                    );
                 }
 
                 debugLogger.Log($"Game loaded from {SavePath}", "Save");
