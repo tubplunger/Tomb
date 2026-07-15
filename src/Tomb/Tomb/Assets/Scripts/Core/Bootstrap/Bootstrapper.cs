@@ -8,6 +8,7 @@ using Tomb.Core.Time;
 using Tomb.Core.Save;
 using Tomb.Core.Debugging.Overlay;
 using Tomb.Core.Debugging.Timeline;
+using Tomb.Gameplay.Resources;
 
 namespace Tomb.Core.Bootstrap
 {
@@ -24,6 +25,11 @@ namespace Tomb.Core.Bootstrap
         private DebugOverlaySystem debugOverlaySystem;
         private EventTimelineSystem eventTimelineSystem;
         private static Bootstrapper instance;
+
+        [SerializeField]
+        private ResourceCatalog resourceCatalog;
+
+        private ResourceSystem resourceSystem;
 
         private void Awake()
         {
@@ -64,6 +70,23 @@ namespace Tomb.Core.Bootstrap
                 return;
             }
 
+            if (resourceCatalog == null)
+            {
+                UnityEngine.Debug.LogError(
+                    "[Bootstrap] Missing ResourceCatalog asset."
+                );
+
+                return;
+            }
+
+            resourceSystem = new ResourceSystem(
+                eventBus,
+                debugLogger,
+                resourceCatalog
+            );
+
+            serviceRegistry.Register(resourceSystem);
+
             gameTimeSystem = new GameTimeSystem(eventBus, debugLogger, timeSettings);
             serviceRegistry.Register(gameTimeSystem);
 
@@ -71,6 +94,7 @@ namespace Tomb.Core.Bootstrap
             serviceRegistry.Register(saveSystem);
 
             saveSystem.Register(gameTimeSystem);
+            saveSystem.Register(resourceSystem);
 
             debugLogger.Log("Core services initialized.", "Bootstrap");
         }
