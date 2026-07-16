@@ -9,6 +9,7 @@ using Tomb.Core.Save;
 using Tomb.Core.Debugging.Overlay;
 using Tomb.Core.Debugging.Timeline;
 using Tomb.Gameplay.Resources;
+using Tomb.Gameplay.Machines;
 
 namespace Tomb.Core.Bootstrap
 {
@@ -30,6 +31,11 @@ namespace Tomb.Core.Bootstrap
         private ResourceCatalog resourceCatalog;
 
         private ResourceSystem resourceSystem;
+
+        [SerializeField]
+        private MachineCatalog machineCatalog;
+
+        private MachineSystem machineSystem;
 
         private void Awake()
         {
@@ -87,6 +93,23 @@ namespace Tomb.Core.Bootstrap
 
             serviceRegistry.Register(resourceSystem);
 
+            if (machineCatalog == null)
+            {
+                UnityEngine.Debug.LogError(
+                    "[Bootstrap] Missing MachineCatalog asset."
+                );
+
+                return;
+            }
+
+            machineSystem = new MachineSystem(
+                eventBus,
+                debugLogger,
+                machineCatalog
+            );
+
+            serviceRegistry.Register(machineSystem);
+
             gameTimeSystem = new GameTimeSystem(eventBus, debugLogger, timeSettings);
             serviceRegistry.Register(gameTimeSystem);
 
@@ -95,6 +118,7 @@ namespace Tomb.Core.Bootstrap
 
             saveSystem.Register(gameTimeSystem);
             saveSystem.Register(resourceSystem);
+            saveSystem.Register(machineSystem);
 
             debugLogger.Log("Core services initialized.", "Bootstrap");
         }

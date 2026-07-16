@@ -4,57 +4,50 @@ using UnityEngine;
 using UnityEngine.UI;
 using Tomb.Core.Events;
 using Tomb.Core.Services;
+using Tomb.Core.Debugging.Lists;
 
 namespace Tomb.Gameplay.Resources
 {
-    public sealed class DebugResourcesPanel : MonoBehaviour
+    public sealed class DebugResourcesPanel
+        : DebugListPanelBase
     {
-        [Header("UI")]
-        [SerializeField]
-        private Transform rowContainer;
-
+        [Header("Resources")]
         [SerializeField]
         private DebugResourceRowView rowPrefab;
 
         [SerializeField]
         private TMP_Text resourceCountText;
 
-        private readonly List<DebugResourceRowView>
-            rows = new();
+        private readonly List<DebugResourceRowView> rows = new();
 
         private EventBus eventBus;
         private ResourceSystem resourceSystem;
 
-        private bool refreshQueued;
-
-        private void Start()
+        protected override void InitializePanel()
         {
-            eventBus =
-                CoreServices.Get<EventBus>();
-
-            resourceSystem =
-                CoreServices.Get<ResourceSystem>();
+            eventBus = CoreServices.Get<EventBus>();
+            resourceSystem = CoreServices.Get<ResourceSystem>();
 
             eventBus.Subscribe<ResourceChangedEvent>(
                 OnResourceChanged
             );
 
             BuildRows();
-            RefreshRows();
         }
 
-        private void OnEnable()
+        protected override void RefreshList()
         {
-            refreshQueued = true;
+            foreach (DebugResourceRowView row in rows)
+            {
+                row.Refresh();
+            }
+
+            RebuildListLayout();
         }
 
-        private void LateUpdate()
+        protected override void OnEnable()
         {
-            if (!refreshQueued)
-                return;
-
-            refreshQueued = false;
-            RefreshRows();
+            base.OnEnable();
         }
 
         private void OnDestroy()
@@ -70,10 +63,10 @@ namespace Tomb.Gameplay.Resources
                      in resourceSystem.Resources)
             {
                 DebugResourceRowView row =
-                    Instantiate(
-                        rowPrefab,
-                        rowContainer
-                    );
+                    SpawnRow(rowPrefab);
+
+                if (row == null)
+                    continue;
 
                 row.Initialize(resource);
                 rows.Add(row);
@@ -82,35 +75,13 @@ namespace Tomb.Gameplay.Resources
             resourceCountText.text =
                 $"Resources: {rows.Count}";
 
-            RebuildLayout();
+            RebuildListLayout();
         }
 
         private void OnResourceChanged(
             ResourceChangedEvent resourceChangedEvent)
         {
-            refreshQueued = true;
-        }
-
-        private void RefreshRows()
-        {
-            foreach (DebugResourceRowView row in rows)
-            {
-                row.Refresh();
-            }
-
-            RebuildLayout();
-        }
-
-        private void RebuildLayout()
-        {
-            Canvas.ForceUpdateCanvases();
-
-            if (rowContainer is RectTransform rectTransform)
-            {
-                LayoutRebuilder.ForceRebuildLayoutImmediate(
-                    rectTransform
-                );
-            }
+            QueueRefresh();
         }
     }
 }
