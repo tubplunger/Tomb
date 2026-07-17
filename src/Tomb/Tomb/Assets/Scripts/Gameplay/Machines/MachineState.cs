@@ -6,6 +6,8 @@ namespace Tomb.Gameplay.Machines
 {
     public sealed class MachineState
     {
+        private MachineStatus runtimeStatus = MachineStatus.Operational;
+
         public MachineDefinition Definition { get; }
 
         public bool IsEnabled { get; private set; }
@@ -36,7 +38,7 @@ namespace Tomb.Gameplay.Machines
                 if (!IsEnabled)
                     return MachineStatus.Disabled;
 
-                return MachineStatus.Operational;
+                return runtimeStatus;
             }
         }
 
@@ -100,6 +102,21 @@ namespace Tomb.Gameplay.Machines
             );
 
             return CurrentCondition - previousCondition;
+        }
+
+        public bool SetRuntimeStatus(MachineStatus newStatus)
+        {
+            if (newStatus == MachineStatus.Broken ||
+                newStatus == MachineStatus.Disabled)
+            {
+                newStatus = MachineStatus.Operational;
+            }
+
+            if (runtimeStatus == newStatus)
+                return false;
+
+            runtimeStatus = newStatus;
+            return true;
         }
     }
 }

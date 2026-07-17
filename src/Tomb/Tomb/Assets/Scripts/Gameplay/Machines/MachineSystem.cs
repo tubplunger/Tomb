@@ -227,6 +227,34 @@ namespace Tomb.Gameplay.Machines
             return amountRepaired;
         }
 
+        public bool SetRuntimeStatus(
+            string machineId,
+            MachineStatus status,
+            string reason = "Unspecified")
+        {
+            if (!TryGetMachine(machineId, out MachineState machine))
+            {
+                LogMissingMachine(machineId);
+                return false;
+            }
+
+            MachineStatus previousStatus = machine.Status;
+
+            if (!machine.SetRuntimeStatus(status))
+                return false;
+
+            if (machine.Status != previousStatus)
+            {
+                PublishStateChange(
+                    machine,
+                    previousStatus,
+                    reason
+                );
+            }
+
+            return true;
+        }
+
         public float SetCondition(
             string machineId,
             float condition,

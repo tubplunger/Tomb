@@ -32,6 +32,10 @@ namespace Tomb.Gameplay.Machines
         [SerializeField]
         private bool startingEnabled = true;
 
+        [Header("Processing")]
+        [SerializeField]
+        private MachineProcessDefinition processDefinition;
+
         [SerializeField]
         private bool canBeDisabled = true;
 
@@ -54,6 +58,8 @@ namespace Tomb.Gameplay.Machines
         public bool CanBeDisabled => canBeDisabled;
 
         public float MaximumCondition => maximumCondition;
+
+        public MachineProcessDefinition ProcessDefinition => processDefinition;
 
         public float StartingCondition =>
             Mathf.Clamp(

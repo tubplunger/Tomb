@@ -14,6 +14,7 @@ namespace Tomb.Gameplay.Machines
         [SerializeField] private TMP_Text categoryText;
         [SerializeField] private TMP_Text conditionText;
         [SerializeField] private TMP_Text efficiencyText;
+        [SerializeField] private TMP_Text processText;
 
         [SerializeField]
         private RectTransform conditionFillRect;
@@ -54,6 +55,14 @@ namespace Tomb.Gameplay.Machines
 
             efficiencyText.text =
                 $"Efficiency: {machine.Efficiency * 100f:0.#}%";
+
+            MachineProcessDefinition process =
+                definition.ProcessDefinition;
+
+            processText.text =
+                process != null
+                    ? process.GetSummary()
+                    : "No resource process configured";
 
             QueueConditionBarRefresh();
         }

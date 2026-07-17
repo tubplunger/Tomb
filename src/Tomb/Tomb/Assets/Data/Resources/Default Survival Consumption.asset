@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 082cd1f0c455e5846b88056dd5789ee4, type: 3}
+  m_Name: Default Survival Consumption
+  m_EditorClassIdentifier: 
+  hourlyConsumption:
+  - resource: {fileID: 11400000, guid: b3c7c138b6b093746902b07bdccda421, type: 2}
+    amount: 0.5
+  - resource: {fileID: 11400000, guid: 8525a1a9a00e40b42bebf38b7cd039c6, type: 2}
+    amount: 0.15
+  - resource: {fileID: 11400000, guid: 449f4ee90cab16945842351ea668d564, type: 2}
+    amount: 0.04
+  hourlyOutputs:
+  - resource: {fileID: 11400000, guid: 46da382ef2bbbcc469f6bdbf6c90bb90, type: 2}
+    amount: 6
+  - resource: {fileID: 11400000, guid: d21be5d9be222bd4582fbc364c5a8c26, type: 2}
+    amount: 4

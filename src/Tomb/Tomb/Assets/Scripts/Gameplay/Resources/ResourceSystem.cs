@@ -214,6 +214,86 @@ namespace Tomb.Gameplay.Resources
             return changeAmount;
         }
 
+        public bool HasAll(
+    IReadOnlyList<ResourceAmount> requirements)
+        {
+            if (requirements == null)
+                return true;
+
+            foreach (ResourceAmount requirement in requirements)
+            {
+                if (requirement == null ||
+                    requirement.Resource == null ||
+                    requirement.Amount <= 0f)
+                {
+                    continue;
+                }
+
+                if (!HasAtLeast(
+                        requirement.ResourceId,
+                        requirement.Amount))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public bool TryConsumeAll(
+            IReadOnlyList<ResourceAmount> requirements,
+            string reason = "Unspecified")
+        {
+            if (!HasAll(requirements))
+                return false;
+
+            if (requirements == null)
+                return true;
+
+            foreach (ResourceAmount requirement in requirements)
+            {
+                if (requirement == null ||
+                    requirement.Resource == null ||
+                    requirement.Amount <= 0f)
+                {
+                    continue;
+                }
+
+                Consume(
+                    requirement.ResourceId,
+                    requirement.Amount,
+                    reason
+                );
+            }
+
+            return true;
+        }
+
+        public void AddAll(
+            IReadOnlyList<ResourceAmount> outputs,
+            float multiplier = 1f,
+            string reason = "Unspecified")
+        {
+            if (outputs == null || multiplier <= 0f)
+                return;
+
+            foreach (ResourceAmount output in outputs)
+            {
+                if (output == null ||
+                    output.Resource == null ||
+                    output.Amount <= 0f)
+                {
+                    continue;
+                }
+
+                Add(
+                    output.ResourceId,
+                    output.Amount * multiplier,
+                    reason
+                );
+            }
+        }
+
         public object CaptureState()
         {
             ResourceSaveState saveState =

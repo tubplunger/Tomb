@@ -18,6 +18,7 @@ MonoBehaviour:
   category: 0
   priority: 0
   startingEnabled: 1
+  processDefinition: {fileID: 11400000, guid: eba5120c938b0144aa4442af7e15fb98, type: 2}
   canBeDisabled: 1
   maximumCondition: 100
   startingCondition: 100

@@ -37,6 +37,12 @@ namespace Tomb.Core.Bootstrap
 
         private MachineSystem machineSystem;
 
+        [SerializeField]
+        private SurvivalConsumptionProfile survivalConsumptionProfile;
+
+        private MachineProcessingSystem machineProcessingSystem;
+        private SurvivalConsumptionSystem survivalConsumptionSystem;
+
         private void Awake()
         {
             if (instance != null && instance != this)
@@ -110,6 +116,35 @@ namespace Tomb.Core.Bootstrap
 
             serviceRegistry.Register(machineSystem);
 
+            if (survivalConsumptionProfile == null)
+            {
+                UnityEngine.Debug.LogError(
+                    "[Bootstrap] Missing SurvivalConsumptionProfile asset."
+                );
+
+                return;
+            }
+
+            machineProcessingSystem =
+                new MachineProcessingSystem(
+                    eventBus,
+                    debugLogger,
+                    machineSystem,
+                    resourceSystem
+                );
+
+            serviceRegistry.Register(machineProcessingSystem);
+
+            survivalConsumptionSystem =
+                new SurvivalConsumptionSystem(
+                    eventBus,
+                    debugLogger,
+                    resourceSystem,
+                    survivalConsumptionProfile
+                );
+
+            serviceRegistry.Register(survivalConsumptionSystem);
+
             gameTimeSystem = new GameTimeSystem(eventBus, debugLogger, timeSettings);
             serviceRegistry.Register(gameTimeSystem);
 
@@ -119,6 +154,7 @@ namespace Tomb.Core.Bootstrap
             saveSystem.Register(gameTimeSystem);
             saveSystem.Register(resourceSystem);
             saveSystem.Register(machineSystem);
+            saveSystem.Register(machineProcessingSystem);
 
             debugLogger.Log("Core services initialized.", "Bootstrap");
         }
@@ -137,6 +173,8 @@ namespace Tomb.Core.Bootstrap
             saveSystem?.Dispose();
             debugLogger?.Dispose();
             eventTimelineSystem?.Dispose();
+            survivalConsumptionSystem?.Dispose();
+            machineProcessingSystem?.Dispose();
 
             eventBus?.Clear();
             serviceRegistry?.Clear();

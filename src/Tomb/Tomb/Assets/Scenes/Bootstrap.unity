@@ -6239,7 +6239,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 799bcfad1a0d8cd4f9381c7b8ae292ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  machineId: oxygen_generator
   conditionAmount: 20
 --- !u!1 &1250679225
 GameObject:
@@ -9768,6 +9767,7 @@ MonoBehaviour:
   timeSettings: {fileID: 11400000, guid: 2bfeeb1ed4c20e44e8f5b1176d99235b, type: 2}
   resourceCatalog: {fileID: 11400000, guid: 41bb36a634060ee4baaa6613dac3a6b6, type: 2}
   machineCatalog: {fileID: 11400000, guid: 140b6c33b4eb27342add1261c4fc5777, type: 2}
+  survivalConsumptionProfile: {fileID: 11400000, guid: 4e1edd41c6b1dac47a104c2b07fbf128, type: 2}
 --- !u!4 &1936651854
 Transform:
   m_ObjectHideFlags: 0
