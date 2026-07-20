@@ -22,3 +22,4 @@ MonoBehaviour:
   canBeDisabled: 1
   maximumCondition: 100
   startingCondition: 100
+  powerProfile: {fileID: 11400000, guid: d8ee1a8d0f699db45b0cd0d5a91d712a, type: 2}

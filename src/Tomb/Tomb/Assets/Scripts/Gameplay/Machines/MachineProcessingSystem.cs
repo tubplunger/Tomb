@@ -75,8 +75,13 @@ namespace Tomb.Gameplay.Machines
                 if (process == null)
                     continue;
 
-                if (!machine.IsEnabled || machine.IsBroken)
+                if (!machine.IsEnabled ||
+                    machine.IsBroken ||
+                    !machine.HasPower ||
+                    machine.IsInMaintenance)
+                {
                     continue;
+                }
 
                 string machineId =
                     machine.Definition.MachineId;
@@ -118,9 +123,9 @@ namespace Tomb.Gameplay.Machines
             if (!resourceSystem.HasAll(process.Inputs))
             {
                 bool statusChanged =
-                    machineSystem.SetRuntimeStatus(
+                    machineSystem.SetInputsAvailable(
                         machineId,
-                        MachineStatus.MissingInputs,
+                        false,
                         "Required resources unavailable"
                     );
 
@@ -158,9 +163,9 @@ namespace Tomb.Gameplay.Machines
                 $"{machine.Definition.DisplayName} output"
             );
 
-            machineSystem.SetRuntimeStatus(
+            machineSystem.SetInputsAvailable(
                 machineId,
-                MachineStatus.Operational,
+                true,
                 "Processing resumed"
             );
 

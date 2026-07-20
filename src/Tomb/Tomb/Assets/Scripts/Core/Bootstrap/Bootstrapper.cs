@@ -10,6 +10,7 @@ using Tomb.Core.Debugging.Overlay;
 using Tomb.Core.Debugging.Timeline;
 using Tomb.Gameplay.Resources;
 using Tomb.Gameplay.Machines;
+using Tomb.Gameplay.Power;
 
 namespace Tomb.Core.Bootstrap
 {
@@ -42,6 +43,11 @@ namespace Tomb.Core.Bootstrap
 
         private MachineProcessingSystem machineProcessingSystem;
         private SurvivalConsumptionSystem survivalConsumptionSystem;
+
+        [SerializeField]
+        private PowerSettings powerSettings;
+
+        private PowerSystem powerSystem;
 
         private void Awake()
         {
@@ -116,6 +122,24 @@ namespace Tomb.Core.Bootstrap
 
             serviceRegistry.Register(machineSystem);
 
+            if (powerSettings == null)
+            {
+                UnityEngine.Debug.LogError(
+                    "[Bootstrap] Missing PowerSettings asset."
+                );
+
+                return;
+            }
+
+            powerSystem = new PowerSystem(
+                eventBus,
+                debugLogger,
+                machineSystem,
+                powerSettings
+            );
+
+            serviceRegistry.Register(powerSystem);
+
             if (survivalConsumptionProfile == null)
             {
                 UnityEngine.Debug.LogError(
@@ -154,6 +178,7 @@ namespace Tomb.Core.Bootstrap
             saveSystem.Register(gameTimeSystem);
             saveSystem.Register(resourceSystem);
             saveSystem.Register(machineSystem);
+            saveSystem.Register(powerSystem);
             saveSystem.Register(machineProcessingSystem);
 
             debugLogger.Log("Core services initialized.", "Bootstrap");
@@ -173,8 +198,9 @@ namespace Tomb.Core.Bootstrap
             saveSystem?.Dispose();
             debugLogger?.Dispose();
             eventTimelineSystem?.Dispose();
-            survivalConsumptionSystem?.Dispose();
             machineProcessingSystem?.Dispose();
+            powerSystem?.Dispose();
+            survivalConsumptionSystem?.Dispose();
 
             eventBus?.Clear();
             serviceRegistry?.Clear();

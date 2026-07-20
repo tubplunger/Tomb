@@ -6,7 +6,9 @@ namespace Tomb.Gameplay.Machines
 {
     public sealed class MachineState
     {
-        private MachineStatus runtimeStatus = MachineStatus.Operational;
+        private bool hasPower = true;
+        private bool hasRequiredInputs = true;
+        private bool isInMaintenance;
 
         public MachineDefinition Definition { get; }
 
@@ -28,6 +30,12 @@ namespace Tomb.Gameplay.Machines
         public bool IsBroken =>
             CurrentCondition <= 0f;
 
+        public bool HasPower => hasPower;
+
+        public bool HasRequiredInputs => hasRequiredInputs;
+
+        public bool IsInMaintenance => isInMaintenance;
+
         public MachineStatus Status
         {
             get
@@ -38,7 +46,16 @@ namespace Tomb.Gameplay.Machines
                 if (!IsEnabled)
                     return MachineStatus.Disabled;
 
-                return runtimeStatus;
+                if (isInMaintenance)
+                    return MachineStatus.Maintenance;
+
+                if (!hasPower)
+                    return MachineStatus.NoPower;
+
+                if (!hasRequiredInputs)
+                    return MachineStatus.MissingInputs;
+
+                return MachineStatus.Operational;
             }
         }
 
@@ -104,18 +121,30 @@ namespace Tomb.Gameplay.Machines
             return CurrentCondition - previousCondition;
         }
 
-        public bool SetRuntimeStatus(MachineStatus newStatus)
+        public bool SetPowerAvailable(bool available)
         {
-            if (newStatus == MachineStatus.Broken ||
-                newStatus == MachineStatus.Disabled)
-            {
-                newStatus = MachineStatus.Operational;
-            }
-
-            if (runtimeStatus == newStatus)
+            if (hasPower == available)
                 return false;
 
-            runtimeStatus = newStatus;
+            hasPower = available;
+            return true;
+        }
+
+        public bool SetInputsAvailable(bool available)
+        {
+            if (hasRequiredInputs == available)
+                return false;
+
+            hasRequiredInputs = available;
+            return true;
+        }
+
+        public bool SetMaintenance(bool maintenance)
+        {
+            if (isInMaintenance == maintenance)
+                return false;
+
+            isInMaintenance = maintenance;
             return true;
         }
     }

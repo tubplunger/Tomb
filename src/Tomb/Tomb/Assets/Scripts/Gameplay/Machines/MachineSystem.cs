@@ -227,9 +227,9 @@ namespace Tomb.Gameplay.Machines
             return amountRepaired;
         }
 
-        public bool SetRuntimeStatus(
+        public bool SetPowerAvailable(
             string machineId,
-            MachineStatus status,
+            bool available,
             string reason = "Unspecified")
         {
             if (!TryGetMachine(machineId, out MachineState machine))
@@ -240,7 +240,63 @@ namespace Tomb.Gameplay.Machines
 
             MachineStatus previousStatus = machine.Status;
 
-            if (!machine.SetRuntimeStatus(status))
+            if (!machine.SetPowerAvailable(available))
+                return false;
+
+            if (machine.Status != previousStatus)
+            {
+                PublishStateChange(
+                    machine,
+                    previousStatus,
+                    reason
+                );
+            }
+
+            return true;
+        }
+
+        public bool SetInputsAvailable(
+            string machineId,
+            bool available,
+            string reason = "Unspecified")
+        {
+            if (!TryGetMachine(machineId, out MachineState machine))
+            {
+                LogMissingMachine(machineId);
+                return false;
+            }
+
+            MachineStatus previousStatus = machine.Status;
+
+            if (!machine.SetInputsAvailable(available))
+                return false;
+
+            if (machine.Status != previousStatus)
+            {
+                PublishStateChange(
+                    machine,
+                    previousStatus,
+                    reason
+                );
+            }
+
+            return true;
+        }
+
+        public bool SetMaintenance(
+            string machineId,
+            bool maintenance,
+            string reason = "Unspecified")
+        {
+            if (!TryGetMachine(machineId, out MachineState machine))
+            {
+                LogMissingMachine(machineId);
+                return false;
+            }
+
+            MachineStatus previousStatus = machine.Status;
+
+            if (!machine.SetMaintenance(maintenance))
                 return false;
 
             if (machine.Status != previousStatus)

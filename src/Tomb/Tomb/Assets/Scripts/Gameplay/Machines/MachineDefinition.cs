@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Tomb.Gameplay.Power;
 
 namespace Tomb.Gameplay.Machines
 {
@@ -47,6 +48,10 @@ namespace Tomb.Gameplay.Machines
         [SerializeField]
         private float startingCondition = 100f;
 
+        [Header("Power")]
+        [SerializeField]
+        private MachinePowerProfile powerProfile;
+
         public string MachineId => machineId;
         public string DisplayName => displayName;
         public string Description => description;
@@ -60,6 +65,8 @@ namespace Tomb.Gameplay.Machines
         public float MaximumCondition => maximumCondition;
 
         public MachineProcessDefinition ProcessDefinition => processDefinition;
+
+        public MachinePowerProfile PowerProfile => powerProfile;
 
         public float StartingCondition =>
             Mathf.Clamp(

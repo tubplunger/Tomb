@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e6d6369b4aafed54b83c671165f8568c, type: 3}
-  m_Name: Oxygen Generator
+  m_Name: Solar Array
   m_EditorClassIdentifier: 
-  machineId: oxygen_generator
-  displayName: Oxygen Generator
-  description: Generates breathable oxygen for the station.
-  category: 0
+  machineId: solar_array
+  displayName: Solar Array
+  description: Produces electrical power while operational
+  category: 4
   priority: 0
   startingEnabled: 1
-  processDefinition: {fileID: 11400000, guid: eba5120c938b0144aa4442af7e15fb98, type: 2}
+  processDefinition: {fileID: 0}
   canBeDisabled: 1
   maximumCondition: 100
   startingCondition: 100
-  powerProfile: {fileID: 11400000, guid: 97a1eb0bb0743a94e8ea4e667900a91c, type: 2}
+  powerProfile: {fileID: 11400000, guid: 38a28037e7289c24c9beea7a8ff2e7e2, type: 2}
