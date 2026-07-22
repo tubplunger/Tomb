@@ -5,6 +5,7 @@ using UnityEngine;
 using Tomb.Core.Debugging.Lists;
 using Tomb.Core.Events;
 using Tomb.Core.Services;
+using Tomb.Core.Time;
 
 namespace Tomb.Gameplay.Machines
 {
@@ -37,6 +38,10 @@ namespace Tomb.Gameplay.Machines
                 OnMachineConditionChanged
             );
 
+            eventBus.Subscribe<GameMinutePassedEvent>(
+                OnGameMinutePassed
+                );
+
             BuildRows();
         }
 
@@ -59,6 +64,10 @@ namespace Tomb.Gameplay.Machines
             eventBus?.Unsubscribe<MachineConditionChangedEvent>(
                 OnMachineConditionChanged
             );
+
+            eventBus?.Unsubscribe<GameMinutePassedEvent>(
+                OnGameMinutePassed
+            );
         }
 
         private void BuildRows()
@@ -80,6 +89,12 @@ namespace Tomb.Gameplay.Machines
                 $"Machines: {rows.Count}";
 
             RebuildListLayout();
+        }
+
+        private void OnGameMinutePassed(
+            GameMinutePassedEvent minuteEvent)
+        {
+            QueueRefresh();
         }
 
         private void OnMachineStateChanged(

@@ -7,14 +7,15 @@ namespace Tomb.Gameplay.Machines
 {
     public sealed class DEV_MachineControls : MonoBehaviour
     {
-        [Header("Condition Change")]
+        [Header("Direct Damage Test")]
         [Min(0.01f)]
         [SerializeField]
-        private float conditionAmount = 20f;
+        private float conditionDamageAmount = 20f;
 
         private MachineSystem machineSystem;
-        private IReadOnlyList<MachineState> machines;
+        private MachineMaintenanceSystem maintenanceSystem;
 
+        private IReadOnlyList<MachineState> machines;
         private int selectedIndex;
 
         private MachineState SelectedMachine
@@ -33,8 +34,10 @@ namespace Tomb.Gameplay.Machines
             machineSystem =
                 CoreServices.Get<MachineSystem>();
 
-            machines = machineSystem.Machines;
+            maintenanceSystem =
+                CoreServices.Get<MachineMaintenanceSystem>();
 
+            machines = machineSystem.Machines;
             selectedIndex = 0;
 
             LogSelectedMachine();
@@ -43,14 +46,10 @@ namespace Tomb.Gameplay.Machines
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.PageDown))
-            {
                 SelectNextMachine();
-            }
 
             if (Input.GetKeyDown(KeyCode.PageUp))
-            {
                 SelectPreviousMachine();
-            }
 
             if (SelectedMachine == null)
                 return;
@@ -70,17 +69,25 @@ namespace Tomb.Gameplay.Machines
             {
                 machineSystem.Damage(
                     machineId,
-                    conditionAmount,
-                    "Developer test"
+                    conditionDamageAmount,
+                    "Developer damage test"
                 );
             }
 
             if (Input.GetKeyDown(KeyCode.F8))
             {
-                machineSystem.Repair(
-                    machineId,
-                    conditionAmount,
-                    "Developer test"
+                bool repaired =
+                    maintenanceSystem.TryRepair(
+                        machineId,
+                        "Developer repair test"
+                    );
+
+                Debug.Log(
+                    repaired
+                        ? $"[DEV Machines] Repaired " +
+                          $"{SelectedMachine.Definition.DisplayName}"
+                        : $"[DEV Machines] Repair failed for " +
+                          $"{SelectedMachine.Definition.DisplayName}"
                 );
             }
         }
@@ -90,10 +97,8 @@ namespace Tomb.Gameplay.Machines
             if (machines == null || machines.Count == 0)
                 return;
 
-            selectedIndex++;
-
-            if (selectedIndex >= machines.Count)
-                selectedIndex = 0;
+            selectedIndex =
+                (selectedIndex + 1) % machines.Count;
 
             LogSelectedMachine();
         }

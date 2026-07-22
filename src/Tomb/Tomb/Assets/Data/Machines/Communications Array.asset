@@ -23,3 +23,4 @@ MonoBehaviour:
   maximumCondition: 100
   startingCondition: 100
   powerProfile: {fileID: 11400000, guid: c727a50647f80cf45b93e52cc26690a8, type: 2}
+  maintenanceProfile: {fileID: 11400000, guid: 378f2e052d525214f851da0f795a08f1, type: 2}

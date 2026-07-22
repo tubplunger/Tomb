@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using Tomb.Core.Services;
 
 namespace Tomb.Gameplay.Machines
 {
@@ -15,6 +16,7 @@ namespace Tomb.Gameplay.Machines
         [SerializeField] private TMP_Text conditionText;
         [SerializeField] private TMP_Text efficiencyText;
         [SerializeField] private TMP_Text processText;
+        [SerializeField] private TMP_Text maintenanceText;
 
         [SerializeField]
         private RectTransform conditionFillRect;
@@ -25,9 +27,15 @@ namespace Tomb.Gameplay.Machines
         private MachineState machine;
         private Coroutine delayedBarRefresh;
 
+        private MachineMaintenanceSystem maintenanceSystem;
+
         public void Initialize(MachineState machineState)
         {
             machine = machineState;
+
+            maintenanceSystem =
+                CoreServices.Get<MachineMaintenanceSystem>();
+
             Refresh();
         }
 
@@ -63,6 +71,34 @@ namespace Tomb.Gameplay.Machines
                 process != null
                     ? process.GetSummary()
                     : "No resource process configured";
+
+            MachineMaintenanceProfile maintenance =
+                definition.MaintenanceProfile;
+
+            if (maintenance == null)
+            {
+                maintenanceText.text =
+                    "No maintenance profile configured";
+            }
+            else
+            {
+                int nextDegradation =
+                    maintenanceSystem.GetMinutesUntilNextDegradation(
+                        definition.MachineId
+                    );
+
+                string criticalText =
+                    maintenanceSystem.IsCritical(machine)
+                        ? " | CRITICAL"
+                        : string.Empty;
+
+                maintenanceText.text =
+                    $"Degrades in: {nextDegradation}m" +
+                    $" | Loss: {maintenance.DegradationPerInterval:0.##}" +
+                    $" | Repair: {maintenance.ConditionRestoredPerRepair:0.##}" +
+                    $" | Cost: {maintenance.GetRepairCostSummary()}" +
+                    criticalText;
+            }
 
             QueueConditionBarRefresh();
         }

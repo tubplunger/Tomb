@@ -7045,7 +7045,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 799bcfad1a0d8cd4f9381c7b8ae292ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  conditionAmount: 20
+  conditionDamageAmount: 20
 --- !u!1 &1250679225
 GameObject:
   m_ObjectHideFlags: 0

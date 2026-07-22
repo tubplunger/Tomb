@@ -52,6 +52,10 @@ namespace Tomb.Gameplay.Machines
         [SerializeField]
         private MachinePowerProfile powerProfile;
 
+        [Header("Maintenance")]
+        [SerializeField]
+        private MachineMaintenanceProfile maintenanceProfile;
+
         public string MachineId => machineId;
         public string DisplayName => displayName;
         public string Description => description;
@@ -67,6 +71,8 @@ namespace Tomb.Gameplay.Machines
         public MachineProcessDefinition ProcessDefinition => processDefinition;
 
         public MachinePowerProfile PowerProfile => powerProfile;
+
+        public MachineMaintenanceProfile MaintenanceProfile => maintenanceProfile;
 
         public float StartingCondition =>
             Mathf.Clamp(

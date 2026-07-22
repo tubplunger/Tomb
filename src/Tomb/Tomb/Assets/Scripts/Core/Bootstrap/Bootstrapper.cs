@@ -49,6 +49,8 @@ namespace Tomb.Core.Bootstrap
 
         private PowerSystem powerSystem;
 
+        private MachineMaintenanceSystem machineMaintenanceSystem;
+
         private void Awake()
         {
             if (instance != null && instance != this)
@@ -159,6 +161,16 @@ namespace Tomb.Core.Bootstrap
 
             serviceRegistry.Register(machineProcessingSystem);
 
+            machineMaintenanceSystem =
+                new MachineMaintenanceSystem(
+                    eventBus,
+                    debugLogger,
+                    machineSystem,
+                    resourceSystem
+                );
+
+            serviceRegistry.Register(machineMaintenanceSystem);
+
             survivalConsumptionSystem =
                 new SurvivalConsumptionSystem(
                     eventBus,
@@ -180,6 +192,7 @@ namespace Tomb.Core.Bootstrap
             saveSystem.Register(machineSystem);
             saveSystem.Register(powerSystem);
             saveSystem.Register(machineProcessingSystem);
+            saveSystem.Register(machineMaintenanceSystem);
 
             debugLogger.Log("Core services initialized.", "Bootstrap");
         }
@@ -198,6 +211,7 @@ namespace Tomb.Core.Bootstrap
             saveSystem?.Dispose();
             debugLogger?.Dispose();
             eventTimelineSystem?.Dispose();
+            machineMaintenanceSystem?.Dispose();
             machineProcessingSystem?.Dispose();
             powerSystem?.Dispose();
             survivalConsumptionSystem?.Dispose();
