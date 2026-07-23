@@ -162,8 +162,18 @@ namespace Tomb.Core.Save
                     );
                 }
 
-                debugLogger.Log($"Game loaded from {SavePath}", "Save");
-                eventBus.Publish(new GameLoadedEvent(SavePath));
+                eventBus.Publish(
+                    new AllSaveDataRestoredEvent(SavePath)
+                );
+
+                debugLogger.Log(
+                    $"Game loaded from {SavePath}",
+                    "Save"
+                );
+
+                eventBus.Publish(
+                    new GameLoadedEvent(SavePath)
+                );
             }
             catch (Exception exception)
             {

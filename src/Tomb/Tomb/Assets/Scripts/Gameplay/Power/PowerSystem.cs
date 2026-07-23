@@ -72,6 +72,10 @@ namespace Tomb.Gameplay.Power
                 OnMachineConditionChanged
             );
 
+            this.eventBus.Subscribe<AllSaveDataRestoredEvent>(
+                OnAllSaveDataRestored
+            );
+
             EvaluatePower();
 
             debugLogger.Log(
@@ -94,6 +98,11 @@ namespace Tomb.Gameplay.Power
 
         private void OnMachineConditionChanged(
             MachineConditionChangedEvent conditionEvent)
+        {
+            EvaluatePower();
+        }
+
+        private void OnAllSaveDataRestored(AllSaveDataRestoredEvent loadEvent)
         {
             EvaluatePower();
         }
@@ -397,6 +406,10 @@ namespace Tomb.Gameplay.Power
 
             eventBus.Unsubscribe<MachineConditionChangedEvent>(
                 OnMachineConditionChanged
+            );
+
+            eventBus.Unsubscribe<AllSaveDataRestoredEvent>(
+                OnAllSaveDataRestored
             );
         }
     }

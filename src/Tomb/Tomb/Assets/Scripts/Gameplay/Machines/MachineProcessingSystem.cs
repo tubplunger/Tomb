@@ -43,10 +43,20 @@ namespace Tomb.Gameplay.Machines
                 OnGameMinutePassed
             );
 
+            this.eventBus.Subscribe<AllSaveDataRestoredEvent>(
+                OnAllSaveDataRestored
+            );
+
             debugLogger.Log(
                 "Machine processing system initialized.",
                 "Machines"
             );
+        }
+
+        private void OnAllSaveDataRestored(
+            AllSaveDataRestoredEvent loadEvent)
+        {
+            RefreshInputAvailability();
         }
 
         private void InitializeTimers()
@@ -229,10 +239,37 @@ namespace Tomb.Gameplay.Machines
             );
         }
 
+        private void RefreshInputAvailability()
+        {
+            foreach (MachineState machine in machineSystem.Machines)
+            {
+                MachineProcessDefinition process =
+                    machine.Definition.ProcessDefinition;
+
+                if (process == null)
+                    continue;
+
+                bool inputsAvailable =
+                    resourceSystem.HasAll(process.Inputs);
+
+                machineSystem.SetInputsAvailable(
+                    machine.Definition.MachineId,
+                    inputsAvailable,
+                    inputsAvailable
+                        ? "Inputs available after load"
+                        : "Inputs unavailable after load"
+                );
+            }
+        }
+
         public void Dispose()
         {
             eventBus.Unsubscribe<GameMinutePassedEvent>(
                 OnGameMinutePassed
+            );
+
+            eventBus.Unsubscribe<AllSaveDataRestoredEvent>(
+                OnAllSaveDataRestored
             );
         }
     }

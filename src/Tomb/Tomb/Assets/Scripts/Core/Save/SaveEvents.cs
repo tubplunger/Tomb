@@ -54,4 +54,14 @@ namespace Tomb.Core.Save
             Reason = reason;
         }
     }
+
+    public readonly struct AllSaveDataRestoredEvent : IGameEvent
+    {
+        public readonly string FilePath;
+
+        public AllSaveDataRestoredEvent(string filePath)
+        {
+            FilePath = filePath;
+        }
+    }
 }
