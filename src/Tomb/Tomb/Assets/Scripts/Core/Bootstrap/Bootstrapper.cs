@@ -11,6 +11,7 @@ using Tomb.Core.Debugging.Timeline;
 using Tomb.Gameplay.Resources;
 using Tomb.Gameplay.Machines;
 using Tomb.Gameplay.Power;
+using Tomb.Gameplay.Orbit;
 
 namespace Tomb.Core.Bootstrap
 {
@@ -51,6 +52,11 @@ namespace Tomb.Core.Bootstrap
 
         private MachineMaintenanceSystem machineMaintenanceSystem;
 
+        [SerializeField]
+        private OrbitSettings orbitSettings;
+
+        private OrbitSystem orbitSystem;
+
         private void Awake()
         {
             if (instance != null && instance != this)
@@ -89,6 +95,23 @@ namespace Tomb.Core.Bootstrap
                 UnityEngine.Debug.LogError("[Bootstrap] Missing TimeSettings asset.");
                 return;
             }
+
+            if (orbitSettings == null)
+            {
+                UnityEngine.Debug.LogError(
+                    "[Bootstrap] Missing OrbitSettings asset."
+                );
+
+                return;
+            }
+
+            orbitSystem = new OrbitSystem(
+                eventBus,
+                debugLogger,
+                orbitSettings
+            );
+
+            serviceRegistry.Register(orbitSystem);
 
             if (resourceCatalog == null)
             {
@@ -188,6 +211,7 @@ namespace Tomb.Core.Bootstrap
             serviceRegistry.Register(saveSystem);
 
             saveSystem.Register(gameTimeSystem);
+            saveSystem.Register(orbitSystem);
             saveSystem.Register(resourceSystem);
             saveSystem.Register(machineSystem);
             saveSystem.Register(powerSystem);
@@ -215,6 +239,7 @@ namespace Tomb.Core.Bootstrap
             machineProcessingSystem?.Dispose();
             powerSystem?.Dispose();
             survivalConsumptionSystem?.Dispose();
+            orbitSystem?.Dispose();
 
             eventBus?.Clear();
             serviceRegistry?.Clear();

@@ -9,6 +9,7 @@ using Tomb.Core.Time;
 using Tomb.Gameplay.Machines;
 using Tomb.Gameplay.Power;
 using Tomb.Gameplay.Resources;
+using Tomb.Gameplay.Orbit;
 
 namespace Tomb.Core.Debugging.Overlay
 {
@@ -26,11 +27,15 @@ namespace Tomb.Core.Debugging.Overlay
         [SerializeField] private TMP_Text powerSummaryText;
         [SerializeField] private TMP_Text machineSummaryText;
 
+        [SerializeField]
+        private TMP_Text orbitSummaryText;
+
         private GameTimeSystem timeSystem;
         private SaveSystem saveSystem;
         private ResourceSystem resourceSystem;
         private MachineSystem machineSystem;
         private PowerSystem powerSystem;
+        private OrbitSystem orbitSystem;
 
         private void Start()
         {
@@ -48,6 +53,9 @@ namespace Tomb.Core.Debugging.Overlay
 
             powerSystem =
                 CoreServices.Get<PowerSystem>();
+
+            orbitSystem =
+                CoreServices.Get<OrbitSystem>();
         }
 
         private void Update()
@@ -176,6 +184,16 @@ namespace Tomb.Core.Debugging.Overlay
                 $"{unpoweredMachines} without power | " +
                 $"{blockedMachines} missing inputs | " +
                 $"{disabledMachines} disabled";
+
+            OrbitSnapshot orbit =
+                orbitSystem.CurrentSnapshot;
+
+            orbitSummaryText.text =
+                $"Orbit: " +
+                $"{orbit.OrbitProgress * 100f:0.0}% | " +
+                $"Lat {orbit.ApproximateLatitude:0.0}° | " +
+                $"Lon {orbit.ApproximateLongitude:0.0}° | " +
+                $"{orbit.CompletedOrbits} completed";
         }
 
         private static void AppendWarning(

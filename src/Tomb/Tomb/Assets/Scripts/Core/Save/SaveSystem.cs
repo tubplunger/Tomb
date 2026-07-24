@@ -153,13 +153,39 @@ namespace Tomb.Core.Save
 
                 foreach (KeyValuePair<string, ISaveable> pair in saveables)
                 {
-                    if (!saveData.TryGetSystemState(pair.Key, out string systemJson))
+                    if (!saveData.TryGetSystemState(
+                            pair.Key,
+                            out string systemJson))
+                    {
+                        debugLogger.Log(
+                            $"No save data found for: {pair.Key}",
+                            "Save"
+                        );
+
                         continue;
+                    }
 
                     object restoredState = JsonUtility.FromJson(
                         systemJson,
                         pair.Value.SaveStateType
                     );
+
+                    if (restoredState == null)
+                    {
+                        debugLogger.Log(
+                            $"Failed to deserialize save data for: {pair.Key}",
+                            "Save"
+                        );
+
+                        continue;
+                    }
+
+                    debugLogger.Log(
+                        $"Restoring saveable: {pair.Key}",
+                        "Save"
+                    );
+
+                    pair.Value.RestoreState(restoredState);
                 }
 
                 eventBus.Publish(
