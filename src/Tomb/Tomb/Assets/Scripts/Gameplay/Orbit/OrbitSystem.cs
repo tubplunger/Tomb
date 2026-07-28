@@ -33,8 +33,18 @@ namespace Tomb.Gameplay.Orbit
         public int OrbitDurationGameMinutes =>
             settings.OrbitDurationGameMinutes;
 
+        public float OrbitalInclinationDegrees =>
+            settings.OrbitalInclinationDegrees;
+
+        public float VisualOrbitRadius =>
+            settings.VisualOrbitRadius;
+
         public OrbitSnapshot CurrentSnapshot =>
-            CreateSnapshot();
+        OrbitPositionCalculator.CreateSnapshot(
+            orbitProgress,
+            completedOrbits,
+            settings
+        );
 
         public OrbitSystem(
             EventBus eventBus,
@@ -177,58 +187,7 @@ namespace Tomb.Gameplay.Orbit
 
         private OrbitSnapshot CreateSnapshot()
         {
-            float orbitAngleDegrees =
-                orbitProgress * 360f;
-
-            float orbitAngleRadians =
-                orbitAngleDegrees * Mathf.Deg2Rad;
-
-            float inclinationRadians =
-                settings.OrbitalInclinationDegrees *
-                Mathf.Deg2Rad;
-
-            float approximateLatitude =
-                Mathf.Asin(
-                    Mathf.Sin(inclinationRadians) *
-                    Mathf.Sin(orbitAngleRadians)
-                ) * Mathf.Rad2Deg;
-
-            float earthRotationDegrees =
-                CalculateEarthRotationDegrees();
-
-            float approximateLongitude =
-                Mathf.Repeat(
-                    settings.StartingLongitudeDegrees +
-                    orbitAngleDegrees -
-                    earthRotationDegrees +
-                    180f,
-                    360f
-                ) - 180f;
-
-            return new OrbitSnapshot(
-                orbitProgress,
-                orbitAngleDegrees,
-                approximateLatitude,
-                approximateLongitude,
-                completedOrbits
-            );
-        }
-
-        private float CalculateEarthRotationDegrees()
-        {
-            float totalGameMinutes =
-                completedOrbits *
-                settings.OrbitDurationGameMinutes +
-                orbitProgress *
-                settings.OrbitDurationGameMinutes;
-
-            const float minutesPerEarthRotation =
-                1440f;
-
-            return
-                totalGameMinutes /
-                minutesPerEarthRotation *
-                360f;
+            return CurrentSnapshot;
         }
 
         public object CaptureState()

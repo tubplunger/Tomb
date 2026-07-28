@@ -57,6 +57,16 @@ namespace Tomb.Core.Bootstrap
 
         private OrbitSystem orbitSystem;
 
+        [SerializeField]
+        private OrbitLightingSettings orbitLightingSettings;
+
+        [SerializeField]
+        private SolarOrbitIntegrationSettings
+            solarOrbitIntegrationSettings;
+
+        private OrbitLightingSystem orbitLightingSystem;
+        private SolarPowerOrbitIntegration solarPowerOrbitIntegration;
+
         private void Awake()
         {
             if (instance != null && instance != this)
@@ -194,6 +204,50 @@ namespace Tomb.Core.Bootstrap
 
             serviceRegistry.Register(machineMaintenanceSystem);
 
+            if (orbitLightingSettings == null)
+            {
+                UnityEngine.Debug.LogError(
+                    "[Bootstrap] Missing OrbitLightingSettings."
+                );
+
+                return;
+            }
+
+            orbitLightingSystem =
+                new OrbitLightingSystem(
+                    eventBus,
+                    debugLogger,
+                    orbitSystem,
+                    orbitLightingSettings
+                );
+
+            serviceRegistry.Register(
+                orbitLightingSystem
+            );
+
+            if (solarOrbitIntegrationSettings == null)
+            {
+                UnityEngine.Debug.LogError(
+                    "[Bootstrap] Missing " +
+                    "SolarOrbitIntegrationSettings."
+                );
+
+                return;
+            }
+
+            solarPowerOrbitIntegration =
+                new SolarPowerOrbitIntegration(
+                    eventBus,
+                    debugLogger,
+                    orbitLightingSystem,
+                    powerSystem,
+                    solarOrbitIntegrationSettings
+                );
+
+            serviceRegistry.Register(
+                solarPowerOrbitIntegration
+            );
+
             survivalConsumptionSystem =
                 new SurvivalConsumptionSystem(
                     eventBus,
@@ -239,6 +293,8 @@ namespace Tomb.Core.Bootstrap
             machineProcessingSystem?.Dispose();
             powerSystem?.Dispose();
             survivalConsumptionSystem?.Dispose();
+            solarPowerOrbitIntegration?.Dispose();
+            orbitLightingSystem?.Dispose();
             orbitSystem?.Dispose();
 
             eventBus?.Clear();

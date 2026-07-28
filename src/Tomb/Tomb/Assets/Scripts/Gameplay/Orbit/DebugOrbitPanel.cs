@@ -41,8 +41,22 @@ namespace Tomb.Gameplay.Orbit
         [SerializeField]
         private RectTransform progressBackgroundRect;
 
+        [Header("Lighting")]
+        [SerializeField]
+        private TMP_Text lightingStateText;
+
+        [SerializeField]
+        private TMP_Text solarAvailabilityText;
+
+        [SerializeField]
+        private TMP_Text nextTransitionText;
+
+        [SerializeField]
+        private TMP_Text transitionTimerText;
+
         private EventBus eventBus;
         private OrbitSystem orbitSystem;
+        private OrbitLightingSystem lightingSystem;
 
         private bool initialized;
         private bool refreshQueued;
@@ -57,12 +71,19 @@ namespace Tomb.Gameplay.Orbit
             orbitSystem =
                 CoreServices.Get<OrbitSystem>();
 
+            lightingSystem =
+                CoreServices.Get<OrbitLightingSystem>();
+
             eventBus.Subscribe<OrbitUpdatedEvent>(
                 OnOrbitUpdated
             );
 
             eventBus.Subscribe<OrbitRestoredFromSaveEvent>(
                 OnOrbitRestored
+            );
+
+            eventBus.Subscribe<OrbitLightingUpdatedEvent>(
+                OnLightingUpdated
             );
 
             initialized = true;
@@ -100,12 +121,22 @@ namespace Tomb.Gameplay.Orbit
             eventBus?.Unsubscribe<OrbitRestoredFromSaveEvent>(
                 OnOrbitRestored
             );
+
+            eventBus?.Unsubscribe<OrbitLightingUpdatedEvent>(
+                OnLightingUpdated
+            );
         }
 
         private void OnRectTransformDimensionsChange()
         {
             if (initialized)
                 refreshQueued = true;
+        }
+
+        private void OnLightingUpdated(
+            OrbitLightingUpdatedEvent lightingEvent)
+        {
+            refreshQueued = true;
         }
 
         private void OnOrbitUpdated(
@@ -118,6 +149,9 @@ namespace Tomb.Gameplay.Orbit
         {
             OrbitSnapshot snapshot =
                 orbitSystem.CurrentSnapshot;
+
+            OrbitLightingSnapshot lighting =
+                lightingSystem.CurrentSnapshot;
 
             orbitStatusText.text =
                 "STATUS: TRACKING";
@@ -145,6 +179,22 @@ namespace Tomb.Gameplay.Orbit
             longitudeText.text =
                 $"Longitude: " +
                 $"{FormatLongitude(snapshot.ApproximateLongitude)}";
+
+            lightingStateText.text =
+                $"Lighting: {lighting.State.ToString().ToUpper()}";
+
+            solarAvailabilityText.text =
+                $"Solar Availability: " +
+                $"{lighting.GenerationMultiplier * 100f:0}%";
+
+            nextTransitionText.text =
+                $"Next Transition: " +
+                $"{lighting.NextState.ToString().ToUpper()}";
+
+            transitionTimerText.text =
+                $"Transition In: " +
+                $"{lighting.MinutesUntilTransition:0.0} " +
+                $"game minutes";
 
             UpdateProgressBar(snapshot.OrbitProgress);
         }

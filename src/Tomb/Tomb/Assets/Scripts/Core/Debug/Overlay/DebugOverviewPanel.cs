@@ -30,12 +30,16 @@ namespace Tomb.Core.Debugging.Overlay
         [SerializeField]
         private TMP_Text orbitSummaryText;
 
+        [SerializeField]
+        private TMP_Text orbitLightingText;
+
         private GameTimeSystem timeSystem;
         private SaveSystem saveSystem;
         private ResourceSystem resourceSystem;
         private MachineSystem machineSystem;
         private PowerSystem powerSystem;
         private OrbitSystem orbitSystem;
+        private OrbitLightingSystem orbitLightingSystem;
 
         private void Start()
         {
@@ -56,6 +60,9 @@ namespace Tomb.Core.Debugging.Overlay
 
             orbitSystem =
                 CoreServices.Get<OrbitSystem>();
+
+            orbitLightingSystem =
+                CoreServices.Get<OrbitLightingSystem>();
         }
 
         private void Update()
@@ -194,6 +201,15 @@ namespace Tomb.Core.Debugging.Overlay
                 $"Lat {orbit.ApproximateLatitude:0.0}° | " +
                 $"Lon {orbit.ApproximateLongitude:0.0}° | " +
                 $"{orbit.CompletedOrbits} completed";
+
+            OrbitLightingSnapshot lighting =
+                orbitLightingSystem.CurrentSnapshot;
+
+            orbitLightingText.text =
+                $"Lighting: {lighting.State} | " +
+                $"Solar {lighting.GenerationMultiplier * 100f:0}% | " +
+                $"{lighting.MinutesUntilTransition:0.0}m until " +
+                $"{lighting.NextState}";
         }
 
         private static void AppendWarning(

@@ -20,6 +20,8 @@ namespace Tomb.Gameplay.Power
         private readonly MachineSystem machineSystem;
         private readonly PowerSettings settings;
 
+        private readonly Dictionary<string, float> generationMultipliers = new();
+
         private float batteryCharge;
         private bool shortageActive;
 
@@ -82,6 +84,53 @@ namespace Tomb.Gameplay.Power
                 "Power system initialized.",
                 "Power"
             );
+        }
+
+        public void SetGenerationMultiplier(
+            string machineId,
+            float multiplier,
+            string reason = "Unspecified")
+        {
+            if (string.IsNullOrWhiteSpace(machineId))
+                return;
+
+            float clampedMultiplier =
+                Mathf.Max(0f, multiplier);
+
+            float previousMultiplier =
+                GetGenerationMultiplier(machineId);
+
+            if (Mathf.Approximately(
+                    previousMultiplier,
+                    clampedMultiplier))
+            {
+                return;
+            }
+
+            generationMultipliers[machineId] =
+                clampedMultiplier;
+
+            debugLogger.Log(
+                $"Generation multiplier for '{machineId}' " +
+                $"changed from {previousMultiplier:0.##} to " +
+                $"{clampedMultiplier:0.##}. Reason: {reason}",
+                "Power"
+            );
+
+            EvaluatePower();
+        }
+
+        public float GetGenerationMultiplier(
+            string machineId)
+        {
+            if (string.IsNullOrWhiteSpace(machineId))
+                return 1f;
+
+            return generationMultipliers.TryGetValue(
+                machineId,
+                out float multiplier)
+                ? multiplier
+                : 1f;
         }
 
         private void OnGameMinutePassed(
@@ -211,29 +260,33 @@ namespace Tomb.Gameplay.Power
 
         private float CalculateGeneration()
         {
-            float generation = 0f;
+            float totalGeneration = 0f;
 
-            foreach (MachineState machine
-                     in machineSystem.Machines)
+            foreach (MachineState machine in machineSystem.Machines)
             {
-                MachinePowerProfile profile =
+                MachinePowerProfile powerProfile =
                     machine.Definition.PowerProfile;
 
-                if (profile == null ||
-                    !profile.IsProducer ||
-                    !machine.IsEnabled ||
-                    machine.IsBroken ||
-                    machine.IsInMaintenance)
-                {
+                if (powerProfile == null)
                     continue;
-                }
 
-                generation +=
-                    profile.GenerationPerGameMinute *
-                    machine.Efficiency;
+                if (powerProfile.GenerationPerGameMinute <= 0f)
+                    continue;
+
+                float externalMultiplier =
+                    GetGenerationMultiplier(
+                        machine.Definition.MachineId
+                    );
+
+                float generatedPower =
+                    powerProfile.GenerationPerGameMinute *
+                    machine.Efficiency *
+                    externalMultiplier;
+
+                totalGeneration += generatedPower;
             }
 
-            return generation;
+            return totalGeneration;
         }
 
         private void SetMachinePower(

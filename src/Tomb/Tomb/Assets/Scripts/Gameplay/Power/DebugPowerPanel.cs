@@ -6,6 +6,7 @@ using Tomb.Core.Debugging.Lists;
 using Tomb.Core.Events;
 using Tomb.Core.Services;
 using Tomb.Gameplay.Machines;
+using Tomb.Gameplay.Orbit;
 
 namespace Tomb.Gameplay.Power
 {
@@ -38,18 +39,23 @@ namespace Tomb.Gameplay.Power
         [SerializeField]
         private RectTransform batteryBackgroundRect;
 
+        [SerializeField]
+        private TMP_Text solarEnvironmentText;
+
         private readonly List<DebugPowerRowView>
             rows = new();
 
         private EventBus eventBus;
         private PowerSystem powerSystem;
         private MachineSystem machineSystem;
+        private OrbitLightingSystem orbitLightingSystem;
 
         protected override void InitializePanel()
         {
             eventBus = CoreServices.Get<EventBus>();
             powerSystem = CoreServices.Get<PowerSystem>();
             machineSystem = CoreServices.Get<MachineSystem>();
+            orbitLightingSystem = CoreServices.Get<OrbitLightingSystem>();
 
             eventBus.Subscribe<PowerBalanceUpdatedEvent>(
                 OnPowerChanged
@@ -68,6 +74,13 @@ namespace Tomb.Gameplay.Power
 
         protected override void RefreshList()
         {
+            OrbitLightingSnapshot lighting =
+                orbitLightingSystem.CurrentSnapshot;
+
+            solarEnvironmentText.text =
+                $"Solar Environment: {lighting.State} " +
+                $"({lighting.GenerationMultiplier * 100f:0}% available)";
+
             generationText.text =
                 $"Generation: " +
                 $"{powerSystem.CurrentGeneration:0.##}";
