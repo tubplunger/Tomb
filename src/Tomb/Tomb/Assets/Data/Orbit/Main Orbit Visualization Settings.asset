@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0365d32b060bb254b8fb2dd257dbf437, type: 3}
+  m_Name: Main Orbit Visualization Settings
+  m_EditorClassIdentifier: 
+  earthRadius: 2.5
+  orbitRadius: 4.5
+  stationScale: 0.2
+  earthRotationGameMinutes: 1440
+  earthRotationOffsetDegrees: 0
+  orbitRingSegments: 96
+  orbitRingWidth: 0.025
+  sunlightStationMaterial: {fileID: 2100000, guid: e61315f23db44e8429dbd5e6ec00acf3, type: 2}
+  eclipseStationMaterial: {fileID: 2100000, guid: c9e7b9c3b14a1994ca7800c8b11c5b41, type: 2}
