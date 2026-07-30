@@ -12,6 +12,8 @@ using Tomb.Gameplay.Resources;
 using Tomb.Gameplay.Machines;
 using Tomb.Gameplay.Power;
 using Tomb.Gameplay.Orbit;
+using Tomb.Gameplay.Earth;
+using Tomb.Gameplay.Radio;
 
 namespace Tomb.Core.Bootstrap
 {
@@ -66,6 +68,21 @@ namespace Tomb.Core.Bootstrap
 
         private OrbitLightingSystem orbitLightingSystem;
         private SolarPowerOrbitIntegration solarPowerOrbitIntegration;
+
+        [Header("Earth Regions")]
+        [SerializeField]
+        private EarthRegionCatalog earthRegionCatalog;
+
+        [SerializeField]
+        private EarthRegionVisibilitySettings
+            earthRegionVisibilitySettings;
+
+        [Header("Radio")]
+        [SerializeField]
+        private RadioSignalCatalog radioSignalCatalog;
+
+        private EarthRegionSystem earthRegionSystem;
+        private RadioVisibilitySystem radioVisibilitySystem;
 
         private void Awake()
         {
@@ -248,6 +265,32 @@ namespace Tomb.Core.Bootstrap
                 solarPowerOrbitIntegration
             );
 
+            earthRegionSystem =
+                new EarthRegionSystem(
+                    eventBus,
+                    debugLogger,
+                    orbitSystem,
+                    earthRegionCatalog,
+                    earthRegionVisibilitySettings
+                );
+
+            serviceRegistry.Register(
+                earthRegionSystem
+            );
+
+            radioVisibilitySystem =
+                new RadioVisibilitySystem(
+                    eventBus,
+                    debugLogger,
+                    earthRegionSystem,
+                    orbitLightingSystem,
+                    radioSignalCatalog
+                );
+
+            serviceRegistry.Register(
+                radioVisibilitySystem
+            );
+
             survivalConsumptionSystem =
                 new SurvivalConsumptionSystem(
                     eventBus,
@@ -294,6 +337,8 @@ namespace Tomb.Core.Bootstrap
             powerSystem?.Dispose();
             survivalConsumptionSystem?.Dispose();
             solarPowerOrbitIntegration?.Dispose();
+            radioVisibilitySystem?.Dispose();
+            earthRegionSystem?.Dispose();
             orbitLightingSystem?.Dispose();
             orbitSystem?.Dispose();
 

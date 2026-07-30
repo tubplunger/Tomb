@@ -10,6 +10,8 @@ using Tomb.Gameplay.Machines;
 using Tomb.Gameplay.Power;
 using Tomb.Gameplay.Resources;
 using Tomb.Gameplay.Orbit;
+using Tomb.Gameplay.Earth;
+using Tomb.Gameplay.Radio;
 
 namespace Tomb.Core.Debugging.Overlay
 {
@@ -33,6 +35,9 @@ namespace Tomb.Core.Debugging.Overlay
         [SerializeField]
         private TMP_Text orbitLightingText;
 
+        [SerializeField]
+        private TMP_Text regionSummaryText;
+
         private GameTimeSystem timeSystem;
         private SaveSystem saveSystem;
         private ResourceSystem resourceSystem;
@@ -40,6 +45,8 @@ namespace Tomb.Core.Debugging.Overlay
         private PowerSystem powerSystem;
         private OrbitSystem orbitSystem;
         private OrbitLightingSystem orbitLightingSystem;
+        private EarthRegionSystem earthRegionSystem;
+        private RadioVisibilitySystem radioVisibilitySystem;
 
         private void Start()
         {
@@ -63,6 +70,12 @@ namespace Tomb.Core.Debugging.Overlay
 
             orbitLightingSystem =
                 CoreServices.Get<OrbitLightingSystem>();
+
+            earthRegionSystem =
+                CoreServices.Get<EarthRegionSystem>();
+
+            radioVisibilitySystem =
+                CoreServices.Get<RadioVisibilitySystem>();
         }
 
         private void Update()
@@ -210,6 +223,13 @@ namespace Tomb.Core.Debugging.Overlay
                 $"Solar {lighting.GenerationMultiplier * 100f:0}% | " +
                 $"{lighting.MinutesUntilTransition:0.0}m until " +
                 $"{lighting.NextState}";
+
+            EarthRegionDefinition currentRegion =
+                earthRegionSystem.CurrentRegion;
+
+            regionSummaryText.text =
+                $"Earth Region: {(currentRegion != null ? currentRegion.DisplayName : "Unclassified")} | " +
+                $"Signals: {radioVisibilitySystem.VisibleSignals.Count}";
         }
 
         private static void AppendWarning(

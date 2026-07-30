@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9355876a0ad840c41975fff9ccc0a507, type: 3}
+  m_Name: Main Radio Signal Catalog
+  m_EditorClassIdentifier: 
+  signals:
+  - {fileID: 11400000, guid: bdf708528cb7c424090f4884ab9cd3ee, type: 2}
+  - {fileID: 11400000, guid: fae3bae304d7a5d4d997671c0c623780, type: 2}
+  - {fileID: 11400000, guid: 90fef07522bf0b3408e9c44c46176748, type: 2}
