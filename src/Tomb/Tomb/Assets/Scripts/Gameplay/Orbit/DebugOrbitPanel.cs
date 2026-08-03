@@ -5,6 +5,8 @@ using UnityEngine.UI;
 using TMPro;
 using Tomb.Core.Events;
 using Tomb.Core.Services;
+using Tomb.Gameplay.Earth;
+using Tomb.Gameplay.Radio;
 
 namespace Tomb.Gameplay.Orbit
 {
@@ -54,12 +56,22 @@ namespace Tomb.Gameplay.Orbit
         [SerializeField]
         private TMP_Text transitionTimerText;
 
+        [Header("Earth and Radio")]
+        [SerializeField]
+        private TMP_Text currentEarthRegionText;
+
+        [SerializeField]
+        private TMP_Text visibleSignalCountText;
+
         private EventBus eventBus;
         private OrbitSystem orbitSystem;
         private OrbitLightingSystem lightingSystem;
 
         private bool initialized;
         private bool refreshQueued;
+
+        private EarthRegionSystem earthRegionSystem;
+        private RadioVisibilitySystem radioVisibilitySystem;
 
         public int OrbitDurationGameMinutes => orbitSystem.OrbitDurationGameMinutes;
 
@@ -74,6 +86,12 @@ namespace Tomb.Gameplay.Orbit
             lightingSystem =
                 CoreServices.Get<OrbitLightingSystem>();
 
+            earthRegionSystem =
+                CoreServices.Get<EarthRegionSystem>();
+
+            radioVisibilitySystem =
+                CoreServices.Get<RadioVisibilitySystem>();
+
             eventBus.Subscribe<OrbitUpdatedEvent>(
                 OnOrbitUpdated
             );
@@ -86,7 +104,27 @@ namespace Tomb.Gameplay.Orbit
                 OnLightingUpdated
             );
 
+            eventBus.Subscribe<EarthRegionUpdatedEvent>(
+                OnEarthRegionUpdated
+            );
+
+            eventBus.Subscribe<RadioVisibilityUpdatedEvent>(
+                OnRadioVisibilityUpdated
+            );
+
             initialized = true;
+            refreshQueued = true;
+        }
+
+        private void OnEarthRegionUpdated(
+            EarthRegionUpdatedEvent regionEvent)
+        {
+            refreshQueued = true;
+        }
+
+        private void OnRadioVisibilityUpdated(
+            RadioVisibilityUpdatedEvent radioEvent)
+        {
             refreshQueued = true;
         }
 
@@ -125,6 +163,14 @@ namespace Tomb.Gameplay.Orbit
             eventBus?.Unsubscribe<OrbitLightingUpdatedEvent>(
                 OnLightingUpdated
             );
+
+            eventBus?.Unsubscribe<EarthRegionUpdatedEvent>(
+                OnEarthRegionUpdated
+            );
+
+            eventBus?.Unsubscribe<RadioVisibilityUpdatedEvent>(
+                OnRadioVisibilityUpdated
+            );
         }
 
         private void OnRectTransformDimensionsChange()
@@ -152,6 +198,14 @@ namespace Tomb.Gameplay.Orbit
 
             OrbitLightingSnapshot lighting =
                 lightingSystem.CurrentSnapshot;
+
+            EarthRegionDefinition currentRegion =
+                earthRegionSystem.CurrentRegion;
+
+            string currentRegionName =
+                currentRegion != null
+                    ? currentRegion.DisplayName
+                    : "Unclassified";
 
             orbitStatusText.text =
                 "STATUS: TRACKING";
@@ -195,6 +249,13 @@ namespace Tomb.Gameplay.Orbit
                 $"Transition In: " +
                 $"{lighting.MinutesUntilTransition:0.0} " +
                 $"game minutes";
+
+            currentEarthRegionText.text =
+                $"Earth Region: {currentRegionName}";
+
+            visibleSignalCountText.text =
+                $"Visible Signals: " +
+                $"{radioVisibilitySystem.VisibleSignals.Count}";
 
             UpdateProgressBar(snapshot.OrbitProgress);
         }

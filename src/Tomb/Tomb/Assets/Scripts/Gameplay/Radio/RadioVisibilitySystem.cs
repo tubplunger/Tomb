@@ -6,6 +6,7 @@ using Tomb.Core.Events;
 using Tomb.Core.Save;
 using Tomb.Gameplay.Earth;
 using Tomb.Gameplay.Orbit;
+using Tomb.Gameplay.Machines;
 
 namespace Tomb.Gameplay.Radio
 {
@@ -18,6 +19,8 @@ namespace Tomb.Gameplay.Radio
         private readonly OrbitLightingSystem
             orbitLightingSystem;
         private readonly RadioSignalCatalog catalog;
+        private readonly MachineSystem machineSystem;
+        private readonly string communicationsMachineId;
 
         private readonly List<RadioSignalDefinition>
             visibleSignals = new();
@@ -33,15 +36,19 @@ namespace Tomb.Gameplay.Radio
             DebugLogger debugLogger,
             EarthRegionSystem earthRegionSystem,
             OrbitLightingSystem orbitLightingSystem,
-            RadioSignalCatalog catalog)
+            MachineSystem machineSystem,
+            RadioSignalCatalog catalog,
+            string communicationsMachineId =
+                "communications_array")
         {
             this.eventBus = eventBus;
             this.debugLogger = debugLogger;
-            this.earthRegionSystem =
-                earthRegionSystem;
-            this.orbitLightingSystem =
-                orbitLightingSystem;
+            this.earthRegionSystem = earthRegionSystem;
+            this.orbitLightingSystem = orbitLightingSystem;
+            this.machineSystem = machineSystem;
             this.catalog = catalog;
+            this.communicationsMachineId =
+                communicationsMachineId;
 
             eventBus.Subscribe<
                 EarthRegionUpdatedEvent>(
@@ -58,12 +65,35 @@ namespace Tomb.Gameplay.Radio
                 OnAllSaveDataRestored
             );
 
+            eventBus.Subscribe<MachineStateChangedEvent>(
+                OnMachineStateChanged
+            );
+
+            eventBus.Subscribe<MachineConditionChangedEvent>(
+                OnMachineConditionChanged
+            );
+
             Recalculate(false);
 
             debugLogger.Log(
                 "Radio visibility system initialized.",
                 "Radio"
             );
+        }
+
+        public bool IsCommunicationsAvailable()
+        {
+            if (!machineSystem.TryGetMachine(
+                    communicationsMachineId,
+                    out MachineState communications))
+            {
+                return false;
+            }
+
+            return communications.IsEnabled &&
+                   !communications.IsBroken &&
+                   communications.HasPower &&
+                   !communications.IsInMaintenance;
         }
 
         public bool IsSignalVisible(
@@ -91,6 +121,30 @@ namespace Tomb.Gameplay.Radio
             Recalculate(true);
         }
 
+        private void OnMachineStateChanged(
+            MachineStateChangedEvent stateEvent)
+        {
+            if (stateEvent.MachineId !=
+                communicationsMachineId)
+            {
+                return;
+            }
+
+            Recalculate(true);
+        }
+
+        private void OnMachineConditionChanged(
+            MachineConditionChangedEvent conditionEvent)
+        {
+            if (conditionEvent.MachineId !=
+                communicationsMachineId)
+            {
+                return;
+            }
+
+            Recalculate(true);
+        }
+
         private void Recalculate(
             bool publishEvents)
         {
@@ -100,29 +154,35 @@ namespace Tomb.Gameplay.Radio
             visibleSignals.Clear();
             visibleSignalIds.Clear();
 
-            foreach (RadioSignalDefinition signal
-                     in catalog.Signals)
+            bool communicationsAvailable =
+                IsCommunicationsAvailable();
+
+            if (communicationsAvailable)
             {
-                if (signal == null ||
-                    !signal.EnabledByDefault)
+                foreach (RadioSignalDefinition signal
+                         in catalog.Signals)
                 {
-                    continue;
-                }
+                    if (signal == null ||
+                        !signal.EnabledByDefault)
+                    {
+                        continue;
+                    }
 
-                if (!earthRegionSystem.IsRegionVisible(
-                        signal.SourceRegionId))
-                {
-                    continue;
-                }
+                    if (!earthRegionSystem.IsRegionVisible(
+                            signal.SourceRegionId))
+                    {
+                        continue;
+                    }
 
-                if (signal.RequiresSunlight &&
-                    orbitLightingSystem.IsInEclipse)
-                {
-                    continue;
-                }
+                    if (signal.RequiresSunlight &&
+                        orbitLightingSystem.IsInEclipse)
+                    {
+                        continue;
+                    }
 
-                visibleSignals.Add(signal);
-                visibleSignalIds.Add(signal.SignalId);
+                    visibleSignals.Add(signal);
+                    visibleSignalIds.Add(signal.SignalId);
+                }
             }
 
             if (!publishEvents)
@@ -211,6 +271,14 @@ namespace Tomb.Gameplay.Radio
             eventBus.Unsubscribe<
                 OrbitLightingUpdatedEvent>(
                 OnOrbitLightingUpdated
+            );
+
+            eventBus.Unsubscribe<MachineStateChangedEvent>(
+                OnMachineStateChanged
+            );
+
+            eventBus.Unsubscribe<MachineConditionChangedEvent>(
+                OnMachineConditionChanged
             );
 
             eventBus.Unsubscribe<

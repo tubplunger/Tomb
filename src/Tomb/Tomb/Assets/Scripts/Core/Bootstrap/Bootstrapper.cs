@@ -284,7 +284,9 @@ namespace Tomb.Core.Bootstrap
                     debugLogger,
                     earthRegionSystem,
                     orbitLightingSystem,
-                    radioSignalCatalog
+                    machineSystem,
+                    radioSignalCatalog,
+                    "communications_array"
                 );
 
             serviceRegistry.Register(
