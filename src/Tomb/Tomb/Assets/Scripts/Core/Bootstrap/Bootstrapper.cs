@@ -14,6 +14,8 @@ using Tomb.Gameplay.Power;
 using Tomb.Gameplay.Orbit;
 using Tomb.Gameplay.Earth;
 using Tomb.Gameplay.Radio;
+using Tomb.Gameplay.Radio.Broadcasts;
+using Tomb.Gameplay.Story;
 
 namespace Tomb.Core.Bootstrap
 {
@@ -84,6 +86,13 @@ namespace Tomb.Core.Bootstrap
         private EarthRegionSystem earthRegionSystem;
         private RadioVisibilitySystem radioVisibilitySystem;
 
+        [Header("Broadcasts")]
+        [SerializeField]
+        private BroadcastCatalog broadcastCatalog;
+
+        private StoryFlagSystem storyFlagSystem;
+        private BroadcastLibrarySystem broadcastLibrarySystem;
+
         private void Awake()
         {
             if (instance != null && instance != this)
@@ -113,6 +122,14 @@ namespace Tomb.Core.Bootstrap
 
             debugLogger = new DebugLogger(eventBus);
             serviceRegistry.Register(debugLogger);
+
+            storyFlagSystem =
+                new StoryFlagSystem(
+                    eventBus,
+                    debugLogger
+                );
+
+            serviceRegistry.Register(storyFlagSystem);
 
             debugOverlaySystem = new DebugOverlaySystem(eventBus);
             serviceRegistry.Register(debugOverlaySystem);
@@ -306,6 +323,29 @@ namespace Tomb.Core.Bootstrap
             gameTimeSystem = new GameTimeSystem(eventBus, debugLogger, timeSettings);
             serviceRegistry.Register(gameTimeSystem);
 
+            if (broadcastCatalog == null)
+            {
+                UnityEngine.Debug.LogError(
+                    "[Bootstrap] Missing BroadcastCatalog."
+                );
+
+                return;
+            }
+
+            broadcastLibrarySystem =
+                new BroadcastLibrarySystem(
+                    eventBus,
+                    debugLogger,
+                    gameTimeSystem,
+                    radioVisibilitySystem,
+                    storyFlagSystem,
+                    broadcastCatalog
+                );
+
+            serviceRegistry.Register(
+                broadcastLibrarySystem
+            );
+
             saveSystem = new SaveSystem(eventBus, debugLogger);
             serviceRegistry.Register(saveSystem);
 
@@ -316,6 +356,8 @@ namespace Tomb.Core.Bootstrap
             saveSystem.Register(powerSystem);
             saveSystem.Register(machineProcessingSystem);
             saveSystem.Register(machineMaintenanceSystem);
+            saveSystem.Register(storyFlagSystem);
+            saveSystem.Register(broadcastLibrarySystem);
 
             debugLogger.Log("Core services initialized.", "Bootstrap");
         }
@@ -341,6 +383,7 @@ namespace Tomb.Core.Bootstrap
             solarPowerOrbitIntegration?.Dispose();
             radioVisibilitySystem?.Dispose();
             earthRegionSystem?.Dispose();
+            broadcastLibrarySystem?.Dispose();
             orbitLightingSystem?.Dispose();
             orbitSystem?.Dispose();
 

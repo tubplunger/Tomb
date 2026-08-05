@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7028fcb4e4124440aaea457b4b09c97, type: 3}
+  m_Name: First Survivor Call
+  m_EditorClassIdentifier: 
+  broadcastId: na_survivor_first_call
+  title: First Survivor Call
+  description: 
+  signal: {fileID: 11400000, guid: bdf708528cb7c424090f4884ab9cd3ee, type: 2}
+  speaker: {fileID: 11400000, guid: 8e25d9f69c982504199644cc2804e1f4, type: 2}
+  priority: 300
+  minimumGameDay: 1
+  maximumGameDay: 0
+  repeatMode: 0
+  maximumPlayCount: 1
+  requiredFlags: []
+  blockedFlags: []
+  transcriptSegments:
+  - text: I don't know if anyone can hear this. The emergency channels are all repeating
+      the same thing. There are six of us in the basement. Something is moving around
+      upstairs
+    delayBeforeSeconds: 0
+    displayDurationSeconds: 6
+    audioClip: {fileID: 0}
+  enabled: 1
