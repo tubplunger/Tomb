@@ -10,61 +10,71 @@ namespace Tomb.Gameplay.Radio
         MonoBehaviour
     {
         [SerializeField]
-        private TMP_Text signalNameText;
+        private TMP_Text nameText;
 
         [SerializeField]
-        private TMP_Text sourceRegionText;
+        private TMP_Text frequencyText;
 
         [SerializeField]
-        private TMP_Text lightingRequirementText;
+        private TMP_Text availabilityText;
+
+        [SerializeField]
+        private TMP_Text strengthText;
+
+        [SerializeField]
+        private TMP_Text staticText;
 
         [SerializeField]
         private TMP_Text statusText;
 
-        private RadioSignalDefinition signal;
-        private EarthRegionCatalog regionCatalog;
+        private RadioSignalRuntimeState state;
         private RadioVisibilitySystem visibilitySystem;
 
         public void Initialize(
-            RadioSignalDefinition signalDefinition,
-            EarthRegionCatalog earthRegionCatalog,
-            RadioVisibilitySystem radioSystem)
+            RadioSignalRuntimeState runtimeState,
+            RadioVisibilitySystem visibility)
         {
-            signal = signalDefinition;
-            regionCatalog = earthRegionCatalog;
-            visibilitySystem = radioSystem;
+            state = runtimeState;
+            visibilitySystem = visibility;
 
             Refresh();
         }
 
         public void Refresh()
         {
-            if (signal == null)
+            if (state == null)
                 return;
 
-            EarthRegionDefinition region =
-                regionCatalog.FindById(
-                    signal.SourceRegionId
+            RadioSignalDefinition definition =
+                state.Definition;
+
+            nameText.text =
+                definition.DisplayName;
+
+            frequencyText.text =
+                $"{definition.FrequencyMHz:0.0} MHz";
+
+            bool physicallyVisible =
+                visibilitySystem.IsSignalVisible(
+                    definition.SignalId
                 );
 
-            signalNameText.text =
-                signal.DisplayName;
+            availabilityText.text =
+                physicallyVisible
+                    ? "IN RANGE"
+                    : "OUT OF RANGE";
 
-            sourceRegionText.text =
-                region != null
-                    ? region.DisplayName
-                    : signal.SourceRegionId;
+            strengthText.text =
+                $"Strength: " +
+                $"{state.CurrentStrength * 100f:0}%";
 
-            lightingRequirementText.text =
-                signal.RequiresSunlight
-                    ? "Requires Sunlight"
-                    : "Any Lighting";
+            staticText.text =
+                $"Static: " +
+                $"{state.StaticAmount * 100f:0}%";
 
             statusText.text =
-                visibilitySystem.IsSignalVisible(
-                    signal.SignalId)
-                    ? "VISIBLE"
-                    : "HIDDEN";
+                state.Status.ToString()
+                    .ToUpperInvariant();
         }
     }
 }

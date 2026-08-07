@@ -15,5 +15,7 @@ MonoBehaviour:
   signalId: na_emergency_broadcast
   displayName: North American Emergency Broadcast
   sourceRegionId: north_america
+  frequencyMHz: 121.5
+  baseSignalStrength: 0.85
   requiresSunlight: 0
   enabledByDefault: 1

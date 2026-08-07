@@ -15,5 +15,7 @@ MonoBehaviour:
   signalId: pacific_research_relay
   displayName: Pacific Research Relay
   sourceRegionId: pacific_ocean
+  frequencyMHz: 142.7
+  baseSignalStrength: 0.45
   requiresSunlight: 1
   enabledByDefault: 1

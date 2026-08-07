@@ -16,8 +16,8 @@ namespace Tomb.Gameplay.Radio.Broadcasts
         private readonly EventBus eventBus;
         private readonly DebugLogger debugLogger;
         private readonly GameTimeSystem timeSystem;
-        private readonly RadioVisibilitySystem
-            radioVisibilitySystem;
+        private readonly RadioReceiverSystem
+            radioReceiverSystem;
         private readonly StoryFlagSystem storyFlagSystem;
 
         private readonly Dictionary<string,
@@ -44,15 +44,15 @@ namespace Tomb.Gameplay.Radio.Broadcasts
             EventBus eventBus,
             DebugLogger debugLogger,
             GameTimeSystem timeSystem,
-            RadioVisibilitySystem radioVisibilitySystem,
+            RadioReceiverSystem radioReceiverSystem,
             StoryFlagSystem storyFlagSystem,
             BroadcastCatalog catalog)
         {
             this.eventBus = eventBus;
             this.debugLogger = debugLogger;
             this.timeSystem = timeSystem;
-            this.radioVisibilitySystem =
-                radioVisibilitySystem;
+            this.radioReceiverSystem =
+                radioReceiverSystem;
             this.storyFlagSystem = storyFlagSystem;
 
             InitializeFromCatalog(catalog);
@@ -62,8 +62,8 @@ namespace Tomb.Gameplay.Radio.Broadcasts
             );
 
             eventBus.Subscribe<
-                RadioVisibilityUpdatedEvent>(
-                OnRadioVisibilityUpdated
+                RadioReceiverUpdatedEvent>(
+                OnRadioReceiverUpdated
             );
 
             eventBus.Subscribe<StoryFlagChangedEvent>(
@@ -212,8 +212,10 @@ namespace Tomb.Gameplay.Radio.Broadcasts
                 return;
             }
 
-            if (!radioVisibilitySystem.IsSignalVisible(
-                    definition.Signal.SignalId))
+            if (!radioReceiverSystem.TryGetSignalState(
+                    definition.Signal.SignalId,
+                    out RadioSignalRuntimeState signalState) ||
+                !signalState.IsReceivable)
             {
                 SetStatus(
                     state,
@@ -407,8 +409,8 @@ namespace Tomb.Gameplay.Radio.Broadcasts
             RecalculateEligibility(true);
         }
 
-        private void OnRadioVisibilityUpdated(
-            RadioVisibilityUpdatedEvent visibilityEvent)
+        private void OnRadioReceiverUpdated(
+            RadioReceiverUpdatedEvent receiverEvent)
         {
             RecalculateEligibility(true);
         }
@@ -498,8 +500,8 @@ namespace Tomb.Gameplay.Radio.Broadcasts
             );
 
             eventBus.Unsubscribe<
-                RadioVisibilityUpdatedEvent>(
-                OnRadioVisibilityUpdated
+                RadioReceiverUpdatedEvent>(
+                OnRadioReceiverUpdated
             );
 
             eventBus.Unsubscribe<StoryFlagChangedEvent>(

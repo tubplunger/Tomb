@@ -15,5 +15,7 @@ MonoBehaviour:
   signalId: europe_automated_beacon
   displayName: European Automated Beacon
   sourceRegionId: europe
+  frequencyMHz: 134.2
+  baseSignalStrength: 0.65
   requiresSunlight: 0
   enabledByDefault: 1

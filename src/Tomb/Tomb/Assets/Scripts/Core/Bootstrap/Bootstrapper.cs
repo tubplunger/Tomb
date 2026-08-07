@@ -86,6 +86,10 @@ namespace Tomb.Core.Bootstrap
         private EarthRegionSystem earthRegionSystem;
         private RadioVisibilitySystem radioVisibilitySystem;
 
+        [SerializeField]
+        private RadioReceiverSettings radioReceiverSettings;
+        private RadioReceiverSystem radioReceiverSystem;
+
         [Header("Broadcasts")]
         [SerializeField]
         private BroadcastCatalog broadcastCatalog;
@@ -301,13 +305,34 @@ namespace Tomb.Core.Bootstrap
                     debugLogger,
                     earthRegionSystem,
                     orbitLightingSystem,
-                    machineSystem,
-                    radioSignalCatalog,
-                    "communications_array"
+                    radioSignalCatalog
                 );
 
             serviceRegistry.Register(
                 radioVisibilitySystem
+            );
+
+            if (radioReceiverSettings == null)
+            {
+                UnityEngine.Debug.LogError(
+                    "[Bootstrap] Missing RadioReceiverSettings."
+                );
+
+                return;
+            }
+
+            radioReceiverSystem =
+                new RadioReceiverSystem(
+                    eventBus,
+                    debugLogger,
+                    radioVisibilitySystem,
+                    machineSystem,
+                    radioSignalCatalog,
+                    radioReceiverSettings
+                );
+
+            serviceRegistry.Register(
+                radioReceiverSystem
             );
 
             survivalConsumptionSystem =
@@ -337,7 +362,7 @@ namespace Tomb.Core.Bootstrap
                     eventBus,
                     debugLogger,
                     gameTimeSystem,
-                    radioVisibilitySystem,
+                    radioReceiverSystem,
                     storyFlagSystem,
                     broadcastCatalog
                 );
@@ -358,6 +383,7 @@ namespace Tomb.Core.Bootstrap
             saveSystem.Register(machineMaintenanceSystem);
             saveSystem.Register(storyFlagSystem);
             saveSystem.Register(broadcastLibrarySystem);
+            saveSystem.Register(radioReceiverSystem);
 
             debugLogger.Log("Core services initialized.", "Bootstrap");
         }
@@ -381,6 +407,7 @@ namespace Tomb.Core.Bootstrap
             powerSystem?.Dispose();
             survivalConsumptionSystem?.Dispose();
             solarPowerOrbitIntegration?.Dispose();
+            radioReceiverSystem?.Dispose();
             radioVisibilitySystem?.Dispose();
             earthRegionSystem?.Dispose();
             broadcastLibrarySystem?.Dispose();

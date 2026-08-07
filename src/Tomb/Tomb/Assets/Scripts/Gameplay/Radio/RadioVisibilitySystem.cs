@@ -1,12 +1,9 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Tomb.Core.Debugging;
 using Tomb.Core.Events;
 using Tomb.Core.Save;
 using Tomb.Gameplay.Earth;
 using Tomb.Gameplay.Orbit;
-using Tomb.Gameplay.Machines;
 
 namespace Tomb.Gameplay.Radio
 {
@@ -14,13 +11,9 @@ namespace Tomb.Gameplay.Radio
     {
         private readonly EventBus eventBus;
         private readonly DebugLogger debugLogger;
-        private readonly EarthRegionSystem
-            earthRegionSystem;
-        private readonly OrbitLightingSystem
-            orbitLightingSystem;
+        private readonly EarthRegionSystem earthRegionSystem;
+        private readonly OrbitLightingSystem orbitLightingSystem;
         private readonly RadioSignalCatalog catalog;
-        private readonly MachineSystem machineSystem;
-        private readonly string communicationsMachineId;
 
         private readonly List<RadioSignalDefinition>
             visibleSignals = new();
@@ -36,41 +29,24 @@ namespace Tomb.Gameplay.Radio
             DebugLogger debugLogger,
             EarthRegionSystem earthRegionSystem,
             OrbitLightingSystem orbitLightingSystem,
-            MachineSystem machineSystem,
-            RadioSignalCatalog catalog,
-            string communicationsMachineId =
-                "communications_array")
+            RadioSignalCatalog catalog)
         {
             this.eventBus = eventBus;
             this.debugLogger = debugLogger;
             this.earthRegionSystem = earthRegionSystem;
             this.orbitLightingSystem = orbitLightingSystem;
-            this.machineSystem = machineSystem;
             this.catalog = catalog;
-            this.communicationsMachineId =
-                communicationsMachineId;
 
-            eventBus.Subscribe<
-                EarthRegionUpdatedEvent>(
+            eventBus.Subscribe<EarthRegionUpdatedEvent>(
                 OnEarthRegionUpdated
             );
 
-            eventBus.Subscribe<
-                OrbitLightingUpdatedEvent>(
+            eventBus.Subscribe<OrbitLightingUpdatedEvent>(
                 OnOrbitLightingUpdated
             );
 
-            eventBus.Subscribe<
-                AllSaveDataRestoredEvent>(
+            eventBus.Subscribe<AllSaveDataRestoredEvent>(
                 OnAllSaveDataRestored
-            );
-
-            eventBus.Subscribe<MachineStateChangedEvent>(
-                OnMachineStateChanged
-            );
-
-            eventBus.Subscribe<MachineConditionChangedEvent>(
-                OnMachineConditionChanged
             );
 
             Recalculate(false);
@@ -79,21 +55,6 @@ namespace Tomb.Gameplay.Radio
                 "Radio visibility system initialized.",
                 "Radio"
             );
-        }
-
-        public bool IsCommunicationsAvailable()
-        {
-            if (!machineSystem.TryGetMachine(
-                    communicationsMachineId,
-                    out MachineState communications))
-            {
-                return false;
-            }
-
-            return communications.IsEnabled &&
-                   !communications.IsBroken &&
-                   communications.HasPower &&
-                   !communications.IsInMaintenance;
         }
 
         public bool IsSignalVisible(
@@ -121,30 +82,6 @@ namespace Tomb.Gameplay.Radio
             Recalculate(true);
         }
 
-        private void OnMachineStateChanged(
-            MachineStateChangedEvent stateEvent)
-        {
-            if (stateEvent.MachineId !=
-                communicationsMachineId)
-            {
-                return;
-            }
-
-            Recalculate(true);
-        }
-
-        private void OnMachineConditionChanged(
-            MachineConditionChangedEvent conditionEvent)
-        {
-            if (conditionEvent.MachineId !=
-                communicationsMachineId)
-            {
-                return;
-            }
-
-            Recalculate(true);
-        }
-
         private void Recalculate(
             bool publishEvents)
         {
@@ -154,35 +91,29 @@ namespace Tomb.Gameplay.Radio
             visibleSignals.Clear();
             visibleSignalIds.Clear();
 
-            bool communicationsAvailable =
-                IsCommunicationsAvailable();
-
-            if (communicationsAvailable)
+            foreach (RadioSignalDefinition signal
+                     in catalog.Signals)
             {
-                foreach (RadioSignalDefinition signal
-                         in catalog.Signals)
+                if (signal == null ||
+                    !signal.EnabledByDefault)
                 {
-                    if (signal == null ||
-                        !signal.EnabledByDefault)
-                    {
-                        continue;
-                    }
-
-                    if (!earthRegionSystem.IsRegionVisible(
-                            signal.SourceRegionId))
-                    {
-                        continue;
-                    }
-
-                    if (signal.RequiresSunlight &&
-                        orbitLightingSystem.IsInEclipse)
-                    {
-                        continue;
-                    }
-
-                    visibleSignals.Add(signal);
-                    visibleSignalIds.Add(signal.SignalId);
+                    continue;
                 }
+
+                if (!earthRegionSystem.IsRegionVisible(
+                        signal.SourceRegionId))
+                {
+                    continue;
+                }
+
+                if (signal.RequiresSunlight &&
+                    orbitLightingSystem.IsInEclipse)
+                {
+                    continue;
+                }
+
+                visibleSignals.Add(signal);
+                visibleSignalIds.Add(signal.SignalId);
             }
 
             if (!publishEvents)
@@ -263,26 +194,15 @@ namespace Tomb.Gameplay.Radio
 
         public void Dispose()
         {
-            eventBus.Unsubscribe<
-                EarthRegionUpdatedEvent>(
+            eventBus.Unsubscribe<EarthRegionUpdatedEvent>(
                 OnEarthRegionUpdated
             );
 
-            eventBus.Unsubscribe<
-                OrbitLightingUpdatedEvent>(
+            eventBus.Unsubscribe<OrbitLightingUpdatedEvent>(
                 OnOrbitLightingUpdated
             );
 
-            eventBus.Unsubscribe<MachineStateChangedEvent>(
-                OnMachineStateChanged
-            );
-
-            eventBus.Unsubscribe<MachineConditionChangedEvent>(
-                OnMachineConditionChanged
-            );
-
-            eventBus.Unsubscribe<
-                AllSaveDataRestoredEvent>(
+            eventBus.Unsubscribe<AllSaveDataRestoredEvent>(
                 OnAllSaveDataRestored
             );
         }

@@ -37,6 +37,7 @@ namespace Tomb.Gameplay.Radio
         private EventBus eventBus;
         private RadioVisibilitySystem visibilitySystem;
         private MachineSystem machineSystem;
+        private RadioReceiverSystem receiverSystem;
 
         protected override void InitializePanel()
         {
@@ -49,9 +50,16 @@ namespace Tomb.Gameplay.Radio
             machineSystem =
                 CoreServices.Get<MachineSystem>();
 
+            receiverSystem =
+                CoreServices.Get<RadioReceiverSystem>();
+
             eventBus.Subscribe<
                 RadioVisibilityUpdatedEvent>(
                 OnRadioVisibilityUpdated
+            );
+
+            eventBus.Subscribe<RadioReceiverUpdatedEvent>(
+                OnReceiverUpdated
             );
 
             eventBus.Subscribe<
@@ -64,43 +72,30 @@ namespace Tomb.Gameplay.Radio
 
         protected override void RefreshList()
         {
-            foreach (DebugSignalRowView row in rows)
+            int detectedCount = 0;
+
+            foreach (RadioSignalRuntimeState state
+                     in receiverSystem.Signals)
             {
-                row.Refresh();
+                if (state.HasBeenDetected)
+                    detectedCount++;
             }
 
             signalCountText.text =
-                $"Visible Signals: " +
-                $"{visibilitySystem.VisibleSignals.Count} / " +
-                $"{rows.Count}";
+                $"Detected: {detectedCount} / " +
+                $"{receiverSystem.Signals.Count}";
 
             radioStateText.text =
-                visibilitySystem
-                    .IsCommunicationsAvailable()
-                    ? "Communications Array: AVAILABLE"
-                    : "Communications Array: UNAVAILABLE";
-
-            RebuildListLayout();
+                receiverSystem.IsReceiverOperational
+                    ? "Receiver: OPERATIONAL"
+                    : "Receiver: OFFLINE";
         }
 
         private void BuildRows()
         {
-            if (signalCatalog == null ||
-                regionCatalog == null)
+            foreach (RadioSignalRuntimeState state
+                     in receiverSystem.Signals)
             {
-                Debug.LogError(
-                    "[DebugSignalsPanel] Missing catalog asset."
-                );
-
-                return;
-            }
-
-            foreach (RadioSignalDefinition signal
-                     in signalCatalog.Signals)
-            {
-                if (signal == null)
-                    continue;
-
                 DebugSignalRowView row =
                     SpawnRow(rowPrefab);
 
@@ -108,8 +103,7 @@ namespace Tomb.Gameplay.Radio
                     continue;
 
                 row.Initialize(
-                    signal,
-                    regionCatalog,
+                    state,
                     visibilitySystem
                 );
 
@@ -127,6 +121,12 @@ namespace Tomb.Gameplay.Radio
 
         private void OnMachineStateChanged(
             MachineStateChangedEvent stateEvent)
+        {
+            QueueRefresh();
+        }
+
+        private void OnReceiverUpdated(
+            RadioReceiverUpdatedEvent receiverEvent)
         {
             QueueRefresh();
         }
