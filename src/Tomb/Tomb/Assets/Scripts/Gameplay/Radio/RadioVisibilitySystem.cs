@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using Tomb.Core.Debugging;
 using Tomb.Core.Events;
 using Tomb.Core.Save;
@@ -92,7 +93,7 @@ namespace Tomb.Gameplay.Radio
             visibleSignalIds.Clear();
 
             foreach (RadioSignalDefinition signal
-                     in catalog.Signals)
+                    in catalog.Signals)
             {
                 if (signal == null ||
                     !signal.EnabledByDefault)
@@ -100,8 +101,19 @@ namespace Tomb.Gameplay.Radio
                     continue;
                 }
 
-                if (!earthRegionSystem.IsRegionVisible(
-                        signal.SourceRegionId))
+                bool regionVisible =
+                    earthRegionSystem.IsRegionVisible(
+                        signal.SourceRegionId
+                    );
+
+                Debug.Log(
+                    $"[RADIO VISIBILITY] " +
+                    $"Signal={signal.SignalId} | " +
+                    $"SourceRegion={signal.SourceRegionId} | " +
+                    $"RegionVisible={regionVisible}"
+                );
+
+                if (!regionVisible)
                 {
                     continue;
                 }
@@ -114,6 +126,11 @@ namespace Tomb.Gameplay.Radio
 
                 visibleSignals.Add(signal);
                 visibleSignalIds.Add(signal.SignalId);
+
+                Debug.Log(
+                    $"[RADIO VISIBILITY ADD] " +
+                    $"{signal.SignalId} added to visible signals."
+                );
             }
 
             if (!publishEvents)
@@ -127,6 +144,13 @@ namespace Tomb.Gameplay.Radio
                 {
                     continue;
                 }
+
+                Debug.Log(
+                    $"[RADIO VISIBILITY FINAL] " +
+                    $"Visible count = {visibleSignals.Count} | " +
+                    $"NA = {IsSignalVisible("na_emergency_broadcast")} | " +
+                    $"Europe = {IsSignalVisible("europe_automated_beacon")}"
+                );
 
                 eventBus.Publish(
                     new RadioSignalBecameVisibleEvent(

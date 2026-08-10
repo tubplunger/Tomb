@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Solar Array Power
   m_EditorClassIdentifier: 
   demandPerGameMinute: 0
-  generationPerGameMinute: 1.6
+  generationPerGameMinute: 3

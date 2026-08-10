@@ -213,14 +213,40 @@ namespace Tomb.Gameplay.Radio.Broadcasts
             }
 
             if (!radioReceiverSystem.TryGetSignalState(
-                    definition.Signal.SignalId,
-                    out RadioSignalRuntimeState signalState) ||
-                !signalState.IsReceivable)
+        definition.Signal.SignalId,
+        out RadioSignalRuntimeState signalState))
             {
+                debugLogger.Log(
+                    $"Broadcast '{definition.Title}' cannot find signal state for " +
+                    $"'{definition.Signal.SignalId}'.",
+                    "Radio"
+                );
+
                 SetStatus(
                     state,
                     BroadcastRuntimeStatus.SignalUnavailable,
-                    "Source signal is not receivable"
+                    "Signal runtime state could not be found"
+                );
+
+                return;
+            }
+
+            if (!signalState.IsReceivable)
+            {
+                debugLogger.Log(
+                    $"Broadcast '{definition.Title}' blocked by signal " +
+                    $"'{definition.Signal.DisplayName}'. " +
+                    $"Status={signalState.Status}, " +
+                    $"Detected={signalState.HasBeenDetected}, " +
+                    $"Strength={signalState.CurrentStrength:0.00}, " +
+                    $"Tuned={signalState.IsTuned}",
+                    "Radio"
+                );
+
+                SetStatus(
+                    state,
+                    BroadcastRuntimeStatus.SignalUnavailable,
+                    $"Signal not receivable: {signalState.Status}"
                 );
 
                 return;

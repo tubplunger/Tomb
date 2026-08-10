@@ -116,18 +116,57 @@ namespace Tomb.Gameplay.Radio
                     signalId,
                     out RadioSignalRuntimeState state))
             {
+                debugLogger.Log(
+                    $"Tune failed: unknown signal '{signalId}'.",
+                    "Radio"
+                );
+
                 return false;
             }
 
-            if (!state.HasBeenDetected)
+            if (!visibilitySystem.IsSignalVisible(signalId))
+            {
+                debugLogger.Log(
+                    $"Tune failed for '{state.Definition.DisplayName}': " +
+                    "signal is not currently in range.",
+                    "Radio"
+                );
+
                 return false;
+            }
 
             if (!IsReceiverOperational)
+            {
+                debugLogger.Log(
+                    $"Tune failed for '{state.Definition.DisplayName}': " +
+                    "receiver is offline.",
+                    "Radio"
+                );
+
                 return false;
+            }
 
             if (state.CurrentStrength <
                 settings.MinimumReceivableStrength)
             {
+                debugLogger.Log(
+                    $"Tune failed for '{state.Definition.DisplayName}': " +
+                    $"strength {state.CurrentStrength:0.00} is below " +
+                    $"minimum {settings.MinimumReceivableStrength:0.00}.",
+                    "Radio"
+                );
+
+                return false;
+            }
+
+            if (!state.HasBeenDetected)
+            {
+                debugLogger.Log(
+                    $"Tune failed for '{state.Definition.DisplayName}': " +
+                    "signal has not been detected yet.",
+                    "Radio"
+                );
+
                 return false;
             }
 
@@ -158,6 +197,13 @@ namespace Tomb.Gameplay.Radio
             );
 
             Recalculate(true);
+
+            debugLogger.Log(
+                $"Tuned signal: " +
+                $"{state.Definition.DisplayName} " +
+                $"({state.Definition.FrequencyMHz:0.0} MHz)",
+                "Radio"
+            );
 
             return true;
         }
@@ -253,6 +299,13 @@ namespace Tomb.Gameplay.Radio
                         geographicallyAvailable
                     );
 
+                Debug.Log(
+                    $"[RECEIVER RECALCULATE] " +
+                    $"{state.Definition.SignalId} | " +
+                    $"Visible={geographicallyAvailable} | " +
+                    $"Strength={strength:0.00}"
+                );
+
                 state.CurrentStrength = strength;
 
                 state.StaticAmount =
@@ -346,23 +399,32 @@ namespace Tomb.Gameplay.Radio
                 }
             }
 
-            if (tunedSignal != null &&
-                tunedSignal.Status !=
-                    RadioSignalReceiverStatus.Tuned)
+            if (tunedSignal != null)
             {
-                RadioSignalRuntimeState previous =
-                    tunedSignal;
+                bool shouldRemainTuned =
+                    visibilitySystem.IsSignalVisible(
+                        tunedSignal.Definition.SignalId
+                    ) &&
+                    IsReceiverOperational &&
+                    tunedSignal.CurrentStrength >=
+                        settings.MinimumReceivableStrength;
 
-                previous.IsTuned = false;
-                tunedSignal = null;
-
-                if (publishEvents)
+                if (!shouldRemainTuned)
                 {
-                    eventBus.Publish(
-                        new RadioSignalUntunedEvent(
-                            previous.Definition
-                        )
-                    );
+                    RadioSignalRuntimeState previous =
+                        tunedSignal;
+
+                    previous.IsTuned = false;
+                    tunedSignal = null;
+
+                    if (publishEvents)
+                    {
+                        eventBus.Publish(
+                            new RadioSignalUntunedEvent(
+                                previous.Definition
+                            )
+                        );
+                    }
                 }
             }
 
@@ -447,6 +509,11 @@ namespace Tomb.Gameplay.Radio
         private void OnVisibilityUpdated(
             RadioVisibilityUpdatedEvent visibilityEvent)
         {
+            Debug.Log(
+                $"[RADIO RECEIVER] Visibility update received. " +
+                $"Visible signals: {visibilityEvent.VisibleSignalCount}"
+            );
+
             Recalculate(true);
         }
 

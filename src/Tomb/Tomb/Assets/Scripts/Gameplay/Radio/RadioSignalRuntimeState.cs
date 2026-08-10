@@ -39,6 +39,7 @@ namespace Tomb.Gameplay.Radio
         }
 
         public bool IsReceivable =>
+            Status == RadioSignalReceiverStatus.Available ||
             Status == RadioSignalReceiverStatus.Detected ||
             Status == RadioSignalReceiverStatus.Tuned;
 
