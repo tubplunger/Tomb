@@ -144,6 +144,9 @@ namespace Tomb.Core.Bootstrap
                 return;
             }
 
+            gameTimeSystem = new GameTimeSystem(eventBus, debugLogger, timeSettings);
+            serviceRegistry.Register(gameTimeSystem);
+
             if (orbitSettings == null)
             {
                 UnityEngine.Debug.LogError(
@@ -345,9 +348,6 @@ namespace Tomb.Core.Bootstrap
 
             serviceRegistry.Register(survivalConsumptionSystem);
 
-            gameTimeSystem = new GameTimeSystem(eventBus, debugLogger, timeSettings);
-            serviceRegistry.Register(gameTimeSystem);
-
             if (broadcastCatalog == null)
             {
                 UnityEngine.Debug.LogError(
@@ -407,10 +407,10 @@ namespace Tomb.Core.Bootstrap
             powerSystem?.Dispose();
             survivalConsumptionSystem?.Dispose();
             solarPowerOrbitIntegration?.Dispose();
+            broadcastLibrarySystem?.Dispose();
             radioReceiverSystem?.Dispose();
             radioVisibilitySystem?.Dispose();
             earthRegionSystem?.Dispose();
-            broadcastLibrarySystem?.Dispose();
             orbitLightingSystem?.Dispose();
             orbitSystem?.Dispose();
 

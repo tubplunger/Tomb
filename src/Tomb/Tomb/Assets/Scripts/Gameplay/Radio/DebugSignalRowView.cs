@@ -42,22 +42,25 @@ namespace Tomb.Gameplay.Radio
 
         public void Refresh()
         {
-            if (state == null)
+            if (state == null ||
+                visibilitySystem == null)
+            {
                 return;
+            }
 
             RadioSignalDefinition definition =
                 state.Definition;
+
+            bool physicallyVisible =
+                visibilitySystem.IsSignalVisible(
+                    definition.SignalId
+                );
 
             nameText.text =
                 definition.DisplayName;
 
             frequencyText.text =
                 $"{definition.FrequencyMHz:0.0} MHz";
-
-            bool physicallyVisible =
-                visibilitySystem.IsSignalVisible(
-                    definition.SignalId
-                );
 
             availabilityText.text =
                 physicallyVisible
@@ -73,7 +76,8 @@ namespace Tomb.Gameplay.Radio
                 $"{state.StaticAmount * 100f:0}%";
 
             statusText.text =
-                state.Status.ToString()
+                state.Status
+                    .ToString()
                     .ToUpperInvariant();
         }
     }

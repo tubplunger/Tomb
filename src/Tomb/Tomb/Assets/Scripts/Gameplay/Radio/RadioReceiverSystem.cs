@@ -355,6 +355,19 @@ namespace Tomb.Gameplay.Radio
                     }
                 }
 
+                if (state.Definition.SignalId ==
+                    "na_emergency_broadcast")
+                {
+                    Debug.Log(
+                        $"[NA FINAL STATE] " +
+                        $"Visible={geographicallyAvailable} | " +
+                        $"Strength={state.CurrentStrength:0.00} | " +
+                        $"Status={state.Status} | " +
+                        $"Detected={state.HasBeenDetected} | " +
+                        $"ReceiverOperational={receiverOperational}"
+                    );
+                }
+
                 bool isDetectedNow =
                     state.Status ==
                         RadioSignalReceiverStatus.Detected ||

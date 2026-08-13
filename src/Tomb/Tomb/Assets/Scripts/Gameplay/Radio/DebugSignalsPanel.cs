@@ -17,78 +17,90 @@ namespace Tomb.Gameplay.Radio
         [SerializeField]
         private DebugSignalRowView rowPrefab;
 
-        [Header("UI")]
+        [Header("Summary")]
         [SerializeField]
         private TMP_Text signalCountText;
 
         [SerializeField]
         private TMP_Text radioStateText;
 
-        [Header("Data")]
-        [SerializeField]
-        private RadioSignalCatalog signalCatalog;
-
-        [SerializeField]
-        private EarthRegionCatalog regionCatalog;
-
         private readonly List<DebugSignalRowView>
             rows = new();
 
         private EventBus eventBus;
-        private RadioVisibilitySystem visibilitySystem;
-        private MachineSystem machineSystem;
         private RadioReceiverSystem receiverSystem;
+        private RadioVisibilitySystem visibilitySystem;
 
         protected override void InitializePanel()
         {
             eventBus =
                 CoreServices.Get<EventBus>();
 
-            visibilitySystem =
-                CoreServices.Get<RadioVisibilitySystem>();
-
-            machineSystem =
-                CoreServices.Get<MachineSystem>();
-
             receiverSystem =
                 CoreServices.Get<RadioReceiverSystem>();
 
-            eventBus.Subscribe<
-                RadioVisibilityUpdatedEvent>(
-                OnRadioVisibilityUpdated
-            );
+            visibilitySystem =
+                CoreServices.Get<RadioVisibilitySystem>();
 
             eventBus.Subscribe<RadioReceiverUpdatedEvent>(
                 OnReceiverUpdated
             );
 
-            eventBus.Subscribe<
-                MachineStateChangedEvent>(
+            eventBus.Subscribe<RadioVisibilityUpdatedEvent>(
+                OnVisibilityUpdated
+            );
+
+            eventBus.Subscribe<MachineStateChangedEvent>(
                 OnMachineStateChanged
             );
 
+            eventBus.Subscribe<MachineConditionChangedEvent>(
+                OnMachineConditionChanged
+            );
+
             BuildRows();
+
+            QueueRefresh();
         }
 
         protected override void RefreshList()
         {
-            int detectedCount = 0;
+            int knownCount = 0;
+            int activeCount = 0;
 
             foreach (RadioSignalRuntimeState state
                      in receiverSystem.Signals)
             {
                 if (state.HasBeenDetected)
-                    detectedCount++;
+                {
+                    knownCount++;
+                }
+
+                if (state.Status ==
+                        RadioSignalReceiverStatus.Detected ||
+                    state.Status ==
+                        RadioSignalReceiverStatus.Tuned)
+                {
+                    activeCount++;
+                }
             }
 
             signalCountText.text =
-                $"Detected: {detectedCount} / " +
+                $"Active: {activeCount} | " +
+                $"Known: {knownCount} / " +
                 $"{receiverSystem.Signals.Count}";
 
             radioStateText.text =
                 receiverSystem.IsReceiverOperational
                     ? "Receiver: OPERATIONAL"
                     : "Receiver: OFFLINE";
+
+            foreach (DebugSignalRowView row in rows)
+            {
+                row.Refresh();
+            }
+
+            RebuildListLayout();
         }
 
         private void BuildRows()
@@ -113,7 +125,13 @@ namespace Tomb.Gameplay.Radio
             RebuildListLayout();
         }
 
-        private void OnRadioVisibilityUpdated(
+        private void OnReceiverUpdated(
+            RadioReceiverUpdatedEvent receiverEvent)
+        {
+            QueueRefresh();
+        }
+
+        private void OnVisibilityUpdated(
             RadioVisibilityUpdatedEvent visibilityEvent)
         {
             QueueRefresh();
@@ -125,22 +143,28 @@ namespace Tomb.Gameplay.Radio
             QueueRefresh();
         }
 
-        private void OnReceiverUpdated(
-            RadioReceiverUpdatedEvent receiverEvent)
+        private void OnMachineConditionChanged(
+            MachineConditionChangedEvent conditionEvent)
         {
             QueueRefresh();
         }
 
         private void OnDestroy()
         {
-            eventBus?.Unsubscribe<
-                RadioVisibilityUpdatedEvent>(
-                OnRadioVisibilityUpdated
+            eventBus?.Unsubscribe<RadioReceiverUpdatedEvent>(
+                OnReceiverUpdated
             );
 
-            eventBus?.Unsubscribe<
-                MachineStateChangedEvent>(
+            eventBus?.Unsubscribe<RadioVisibilityUpdatedEvent>(
+                OnVisibilityUpdated
+            );
+
+            eventBus?.Unsubscribe<MachineStateChangedEvent>(
                 OnMachineStateChanged
+            );
+
+            eventBus?.Unsubscribe<MachineConditionChangedEvent>(
+                OnMachineConditionChanged
             );
         }
     }
