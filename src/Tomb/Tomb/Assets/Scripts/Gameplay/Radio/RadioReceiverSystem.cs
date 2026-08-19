@@ -28,6 +28,8 @@ namespace Tomb.Gameplay.Radio
 
         private RadioSignalRuntimeState tunedSignal;
 
+        private float currentFrequencyMHz;
+
         public string SaveKey =>
             "radio_receiver";
 
@@ -42,6 +44,9 @@ namespace Tomb.Gameplay.Radio
 
         public bool IsReceiverOperational =>
             GetCommunicationsMachineOperational();
+
+        public float CurrentFrequencyMHz =>
+            currentFrequencyMHz;
 
         public RadioReceiverSystem(
             EventBus eventBus,
@@ -85,6 +90,9 @@ namespace Tomb.Gameplay.Radio
                 OnAllSaveDataRestored
             );
 
+            currentFrequencyMHz =
+                settings.MinimumFrequencyMHz;
+
             Recalculate(false);
 
             debugLogger.Log(
@@ -107,6 +115,188 @@ namespace Tomb.Gameplay.Radio
             return statesById.TryGetValue(
                 signalId,
                 out state
+            );
+        }
+
+        public RadioSignalRuntimeState
+            GetNearestReceivableSignal()
+        {
+            RadioSignalRuntimeState nearest = null;
+            float nearestDifference =
+                float.MaxValue;
+
+            foreach (RadioSignalRuntimeState state
+                     in orderedStates)
+            {
+                if (!state.IsReceivable)
+                    continue;
+
+                float difference =
+                    Mathf.Abs(
+                        state.Definition.FrequencyMHz -
+                        currentFrequencyMHz
+                    );
+
+                if (difference < nearestDifference)
+                {
+                    nearestDifference = difference;
+                    nearest = state;
+                }
+            }
+
+            return nearest;
+        }
+
+        public float GetFrequencyProximity(
+            RadioSignalRuntimeState state)
+        {
+            if (state == null)
+                return 0f;
+
+            float difference =
+                Mathf.Abs(
+                    state.Definition.FrequencyMHz -
+                    currentFrequencyMHz
+                );
+
+            const float proximityWindow = 5f;
+
+            return Mathf.Clamp01(
+                1f -
+                difference / proximityWindow
+            );
+        }
+
+        public void StepFrequencyCoarse(
+            int direction,
+            string reason = "Unspecified")
+        {
+            if (direction == 0)
+                return;
+
+            SetFrequency(
+                currentFrequencyMHz +
+                settings.CoarseFrequencyStepMHz *
+                Mathf.Sign(direction),
+                reason
+            );
+        }
+
+        public void SetFrequency(
+            float frequencyMHz,
+            string reason = "Unspecified")
+        {
+            float clampedFrequency =
+                Mathf.Clamp(
+                    frequencyMHz,
+                    settings.MinimumFrequencyMHz,
+                    settings.MaximumFrequencyMHz
+                );
+
+            if (Mathf.Approximately(
+                    currentFrequencyMHz,
+                    clampedFrequency))
+            {
+                return;
+            }
+
+            currentFrequencyMHz =
+                clampedFrequency;
+
+            EvaluateFrequencyTuning(reason);
+
+            eventBus.Publish(
+                new RadioFrequencyChangedEvent(
+                    currentFrequencyMHz
+                )
+            );
+
+            eventBus.Publish(
+                new RadioReceiverUpdatedEvent(
+                    CountActiveDetectedSignals(),
+                    tunedSignal != null
+                        ? tunedSignal.Definition.SignalId
+                        : string.Empty
+                )
+            );
+        }
+
+        public void StepFrequency(
+            int direction,
+            string reason = "Unspecified")
+        {
+            if (direction == 0)
+                return;
+
+            float nextFrequency =
+                currentFrequencyMHz +
+                settings.FrequencyStepMHz *
+                Mathf.Sign(direction);
+
+            SetFrequency(
+                nextFrequency,
+                reason
+            );
+        }
+
+        private int CountActiveDetectedSignals()
+        {
+            int count = 0;
+
+            foreach (RadioSignalRuntimeState state
+                     in orderedStates)
+            {
+                if (state.Status ==
+                        RadioSignalReceiverStatus.Detected ||
+                    state.Status ==
+                        RadioSignalReceiverStatus.Tuned)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private void EvaluateFrequencyTuning(
+            string reason)
+        {
+            RadioSignalRuntimeState bestMatch = null;
+            float bestDifference = float.MaxValue;
+
+            foreach (RadioSignalRuntimeState state
+                     in orderedStates)
+            {
+                if (!state.IsReceivable)
+                    continue;
+
+                float difference =
+                    Mathf.Abs(
+                        state.Definition.FrequencyMHz -
+                        currentFrequencyMHz
+                    );
+
+                if (difference >
+                    settings.TuningToleranceMHz)
+                {
+                    continue;
+                }
+
+                if (difference < bestDifference)
+                {
+                    bestDifference = difference;
+                    bestMatch = state;
+                }
+            }
+
+            if (bestMatch == null)
+            {
+                Untune();
+                return;
+            }
+
+            TuneSignal(
+                bestMatch.Definition.SignalId
             );
         }
 
@@ -573,9 +763,12 @@ namespace Tomb.Gameplay.Radio
             }
 
             saveState.tunedSignalId =
-                tunedSignal != null
-                    ? tunedSignal.Definition.SignalId
-                    : string.Empty;
+            tunedSignal != null
+                ? tunedSignal.Definition.SignalId
+                : string.Empty;
+
+            saveState.currentFrequencyMHz =
+                currentFrequencyMHz;
 
             return saveState;
         }
@@ -614,6 +807,13 @@ namespace Tomb.Gameplay.Radio
                 tunedSignal = tuned;
                 tuned.IsTuned = true;
             }
+
+            currentFrequencyMHz =
+            Mathf.Clamp(
+                saveState.currentFrequencyMHz,
+                settings.MinimumFrequencyMHz,
+                settings.MaximumFrequencyMHz
+            );
 
             debugLogger.Log(
                 "Radio receiver state restored.",

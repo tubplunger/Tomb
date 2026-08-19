@@ -34,6 +34,30 @@ namespace Tomb.Gameplay.Radio
         [SerializeField]
         private float damagedReceiverStaticMultiplier = 0.75f;
 
+        [Header("Frequency Tuning")]
+        [Min(0f)]
+        [SerializeField]
+        private float minimumFrequencyMHz = 100f;
+
+        [Min(0f)]
+        [SerializeField]
+        private float maximumFrequencyMHz = 160f;
+
+        [Min(0.01f)]
+        [SerializeField]
+        private float frequencyStepMHz = 0.1f;
+
+        [Min(0.01f)]
+        [SerializeField]
+        private float tuningToleranceMHz = 0.15f;
+
+        [Min(0.01f)]
+        [SerializeField]
+        private float coarseFrequencyStepMHz = 1f;
+
+        public float CoarseFrequencyStepMHz =>
+            coarseFrequencyStepMHz;
+
         public string CommunicationsMachineId =>
             communicationsMachineId;
 
@@ -48,6 +72,18 @@ namespace Tomb.Gameplay.Radio
 
         public float DamagedReceiverStaticMultiplier =>
             damagedReceiverStaticMultiplier;
+
+        public float MinimumFrequencyMHz =>
+            minimumFrequencyMHz;
+
+        public float MaximumFrequencyMHz =>
+            maximumFrequencyMHz;
+
+        public float FrequencyStepMHz =>
+            frequencyStepMHz;
+
+        public float TuningToleranceMHz =>
+            tuningToleranceMHz;
 
         private void OnValidate()
         {
@@ -70,6 +106,27 @@ namespace Tomb.Gameplay.Radio
             damagedReceiverStaticMultiplier =
                 Mathf.Clamp01(
                     damagedReceiverStaticMultiplier
+                );
+
+            minimumFrequencyMHz =
+                Mathf.Max(0f, minimumFrequencyMHz);
+
+            maximumFrequencyMHz =
+                Mathf.Max(
+                    minimumFrequencyMHz,
+                    maximumFrequencyMHz
+                );
+
+            frequencyStepMHz =
+                Mathf.Max(
+                    0.01f,
+                    frequencyStepMHz
+                );
+
+            tuningToleranceMHz =
+                Mathf.Max(
+                    0.01f,
+                    tuningToleranceMHz
                 );
         }
     }

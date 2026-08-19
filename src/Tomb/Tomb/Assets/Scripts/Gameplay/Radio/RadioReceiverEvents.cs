@@ -20,6 +20,18 @@ namespace Tomb.Gameplay.Radio
         }
     }
 
+    public readonly struct RadioFrequencyChangedEvent :
+        IGameEvent
+    {
+        public readonly float FrequencyMHz;
+
+        public RadioFrequencyChangedEvent(
+            float frequencyMHz)
+        {
+            FrequencyMHz = frequencyMHz;
+        }
+    }
+
     public readonly struct RadioSignalDetectionLostEvent :
         IGameEvent
     {

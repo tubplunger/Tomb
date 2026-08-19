@@ -12,5 +12,7 @@ namespace Tomb.Gameplay.Radio
             new();
 
         public string tunedSignalId;
+
+        public float currentFrequencyMHz;
     }
 }

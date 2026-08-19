@@ -1909,8 +1909,6 @@ MonoBehaviour:
   rowPrefab: {fileID: 6449080628019181523, guid: 9bf3436265ec4e045b79fb2205924b69, type: 3}
   signalCountText: {fileID: 1945550862}
   radioStateText: {fileID: 1127810732}
-  signalCatalog: {fileID: 11400000, guid: a6fe4b88c11551c4eb0d75cbd3924eed, type: 2}
-  regionCatalog: {fileID: 11400000, guid: 3914bc6a8973b46448a3c23ab34a7fea, type: 2}
 --- !u!1 &187736432
 GameObject:
   m_ObjectHideFlags: 0
@@ -8195,7 +8193,6 @@ GameObject:
   m_Component:
   - component: {fileID: 947631719}
   - component: {fileID: 947631718}
-  - component: {fileID: 947631717}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -8203,14 +8200,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &947631717
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 947631716}
-  m_Enabled: 1
 --- !u!20 &947631718
 Camera:
   m_ObjectHideFlags: 0
