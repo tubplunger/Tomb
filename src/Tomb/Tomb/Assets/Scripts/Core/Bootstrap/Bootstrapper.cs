@@ -21,6 +21,8 @@ namespace Tomb.Core.Bootstrap
 {
     public sealed class Bootstrapper : MonoBehaviour
     {
+        //wah
+
         [Header("Settings")]
         [SerializeField] private TimeSettings timeSettings;
 
