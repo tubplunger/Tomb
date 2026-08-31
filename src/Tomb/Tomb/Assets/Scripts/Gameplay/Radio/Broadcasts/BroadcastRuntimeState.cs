@@ -27,6 +27,12 @@ namespace Tomb.Gameplay.Radio.Broadcasts
         public bool IsEligible =>
             Status == BroadcastRuntimeStatus.Eligible;
 
+        public float RuntimeCooldownSeconds
+        {
+            get;
+            internal set;
+        }
+
         public BroadcastRuntimeState(
             BroadcastDefinition definition)
         {

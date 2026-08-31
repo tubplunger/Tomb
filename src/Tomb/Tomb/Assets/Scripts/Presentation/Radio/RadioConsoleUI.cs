@@ -6,6 +6,7 @@ using TMPro;
 using Tomb.Core.Events;
 using Tomb.Core.Services;
 using Tomb.Gameplay.Radio;
+using Tomb.Gameplay.Radio.Broadcasts;
 
 namespace Tomb.Presentation.Radio
 {
@@ -32,6 +33,13 @@ namespace Tomb.Presentation.Radio
         [SerializeField]
         private TMP_Text signalStatusText;
 
+        [Header("Broadcast")]
+        [SerializeField]
+        private TMP_Text speakerText;
+
+        [SerializeField]
+        private TMP_Text transcriptText;
+
         [Header("Controls")]
         [SerializeField]
         private Button frequencyDownButton;
@@ -47,6 +55,9 @@ namespace Tomb.Presentation.Radio
         [SerializeField]
         private KeyCode frequencyUpKey =
             KeyCode.RightBracket;
+
+        [SerializeField]
+        private AudioSource radioAudioSource;
 
         private EventBus eventBus;
         private RadioReceiverSystem receiverSystem;
@@ -101,6 +112,25 @@ namespace Tomb.Presentation.Radio
                 OnSignalUntuned
             );
 
+            eventBus.Subscribe<BroadcastStartedEvent>(
+                OnBroadcastStarted
+            );
+
+            eventBus.Subscribe<
+                BroadcastSegmentStartedEvent>(
+                OnBroadcastSegmentStarted
+            );
+
+            eventBus.Subscribe<
+                BroadcastInterruptedEvent>(
+                OnBroadcastInterrupted
+            );
+
+            eventBus.Subscribe<
+                BroadcastPlaybackCompletedEvent>(
+                OnBroadcastCompleted
+            );
+
             Refresh();
         }
 
@@ -143,6 +173,80 @@ namespace Tomb.Presentation.Radio
                     StepUp();
                 }
             }
+        }
+
+        private void OnBroadcastStarted(
+            BroadcastStartedEvent startedEvent)
+        {
+            BroadcastDefinition broadcast =
+                startedEvent.Broadcast;
+
+            speakerText.text =
+                broadcast.Speaker != null
+                    ? broadcast.Speaker.DisplayName
+                    : "Unknown";
+
+            transcriptText.text =
+                "...";
+        }
+
+        private void OnBroadcastSegmentStarted(
+            BroadcastSegmentStartedEvent segmentEvent)
+        {
+            BroadcastDefinition broadcast =
+                segmentEvent.Broadcast;
+
+            if (segmentEvent.SegmentIndex < 0 ||
+                segmentEvent.SegmentIndex >=
+                broadcast.TranscriptSegments.Count)
+            {
+                return;
+            }
+
+            BroadcastTranscriptSegment segment =
+                broadcast.TranscriptSegments[
+                    segmentEvent.SegmentIndex
+                ];
+
+            if (segment == null)
+                return;
+
+            if (radioAudioSource != null)
+            {
+                radioAudioSource.Stop();
+
+                if (segment.AudioClip != null)
+                {
+                    radioAudioSource.clip =
+                        segment.AudioClip;
+
+                    radioAudioSource.Play();
+                }
+            }
+
+            speakerText.text =
+                broadcast.Speaker != null
+                    ? broadcast.Speaker.DisplayName
+                    : "Unknown";
+
+            transcriptText.text =
+                segment.Text;
+        }
+
+        private void OnBroadcastInterrupted(
+            BroadcastInterruptedEvent interruptedEvent)
+        {
+            radioAudioSource?.Stop();
+
+            transcriptText.text =
+                "[SIGNAL LOST]";
+        }
+
+        private void OnBroadcastCompleted(
+            BroadcastPlaybackCompletedEvent completedEvent)
+        {
+            transcriptText.text =
+                "[TRANSMISSION COMPLETE]";
         }
 
         private void StepDown()
@@ -281,6 +385,26 @@ namespace Tomb.Presentation.Radio
             eventBus?.Unsubscribe<
                 RadioSignalUntunedEvent>(
                 OnSignalUntuned
+            );
+
+            eventBus?.Unsubscribe<
+                BroadcastStartedEvent>(
+                OnBroadcastStarted
+            );
+
+            eventBus?.Unsubscribe<
+                BroadcastSegmentStartedEvent>(
+                OnBroadcastSegmentStarted
+            );
+
+            eventBus?.Unsubscribe<
+                BroadcastInterruptedEvent>(
+                OnBroadcastInterrupted
+            );
+
+            eventBus?.Unsubscribe<
+                BroadcastPlaybackCompletedEvent>(
+                OnBroadcastCompleted
             );
         }
     }

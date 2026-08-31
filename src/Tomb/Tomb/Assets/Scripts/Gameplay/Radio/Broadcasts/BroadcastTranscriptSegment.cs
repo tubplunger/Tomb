@@ -32,5 +32,21 @@ namespace Tomb.Gameplay.Radio.Broadcasts
             Mathf.Max(0f, displayDurationSeconds);
 
         public AudioClip AudioClip => audioClip;
+
+        public float EffectiveDurationSeconds
+        {
+            get
+            {
+                if (audioClip != null)
+                {
+                    return Mathf.Max(
+                        displayDurationSeconds,
+                        audioClip.length
+                    );
+                }
+
+                return displayDurationSeconds;
+            }
+        }
     }
 }

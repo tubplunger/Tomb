@@ -21,7 +21,6 @@ namespace Tomb.Core.Bootstrap
 {
     public sealed class Bootstrapper : MonoBehaviour
     {
-        //wah
 
         [Header("Settings")]
         [SerializeField] private TimeSettings timeSettings;
@@ -98,6 +97,8 @@ namespace Tomb.Core.Bootstrap
 
         private StoryFlagSystem storyFlagSystem;
         private BroadcastLibrarySystem broadcastLibrarySystem;
+
+        private BroadcastPlaybackSystem broadcastPlaybackSystem;
 
         private void Awake()
         {
@@ -373,6 +374,18 @@ namespace Tomb.Core.Bootstrap
                 broadcastLibrarySystem
             );
 
+            broadcastPlaybackSystem =
+                new BroadcastPlaybackSystem(
+                    eventBus,
+                    debugLogger,
+                    radioReceiverSystem,
+                    broadcastLibrarySystem
+                );
+
+            serviceRegistry.Register(
+                broadcastPlaybackSystem
+            );
+
             saveSystem = new SaveSystem(eventBus, debugLogger);
             serviceRegistry.Register(saveSystem);
 
@@ -385,6 +398,7 @@ namespace Tomb.Core.Bootstrap
             saveSystem.Register(machineMaintenanceSystem);
             saveSystem.Register(storyFlagSystem);
             saveSystem.Register(broadcastLibrarySystem);
+            saveSystem.Register(broadcastPlaybackSystem);
             saveSystem.Register(radioReceiverSystem);
 
             debugLogger.Log("Core services initialized.", "Bootstrap");
@@ -409,6 +423,7 @@ namespace Tomb.Core.Bootstrap
             powerSystem?.Dispose();
             survivalConsumptionSystem?.Dispose();
             solarPowerOrbitIntegration?.Dispose();
+            broadcastPlaybackSystem?.Dispose();
             broadcastLibrarySystem?.Dispose();
             radioReceiverSystem?.Dispose();
             radioVisibilitySystem?.Dispose();
