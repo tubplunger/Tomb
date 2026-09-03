@@ -16,6 +16,7 @@ using Tomb.Gameplay.Earth;
 using Tomb.Gameplay.Radio;
 using Tomb.Gameplay.Radio.Broadcasts;
 using Tomb.Gameplay.Story;
+using Tomb.Gameplay.Radio.Responses;
 
 namespace Tomb.Core.Bootstrap
 {
@@ -99,6 +100,8 @@ namespace Tomb.Core.Bootstrap
         private BroadcastLibrarySystem broadcastLibrarySystem;
 
         private BroadcastPlaybackSystem broadcastPlaybackSystem;
+
+        private RadioResponseSystem radioResponseSystem;
 
         private void Awake()
         {
@@ -386,6 +389,18 @@ namespace Tomb.Core.Bootstrap
                 broadcastPlaybackSystem
             );
 
+            radioResponseSystem =
+                new RadioResponseSystem(
+                    eventBus,
+                    debugLogger,
+                    storyFlagSystem,
+                    broadcastLibrarySystem
+                );
+
+            serviceRegistry.Register(
+                radioResponseSystem
+            );
+
             saveSystem = new SaveSystem(eventBus, debugLogger);
             serviceRegistry.Register(saveSystem);
 
@@ -400,6 +415,7 @@ namespace Tomb.Core.Bootstrap
             saveSystem.Register(broadcastLibrarySystem);
             saveSystem.Register(broadcastPlaybackSystem);
             saveSystem.Register(radioReceiverSystem);
+            saveSystem.Register(radioResponseSystem);
 
             debugLogger.Log("Core services initialized.", "Bootstrap");
         }
@@ -424,6 +440,7 @@ namespace Tomb.Core.Bootstrap
             survivalConsumptionSystem?.Dispose();
             solarPowerOrbitIntegration?.Dispose();
             broadcastPlaybackSystem?.Dispose();
+            radioResponseSystem?.Dispose();
             broadcastLibrarySystem?.Dispose();
             radioReceiverSystem?.Dispose();
             radioVisibilitySystem?.Dispose();

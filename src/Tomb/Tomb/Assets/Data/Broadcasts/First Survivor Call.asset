@@ -32,3 +32,10 @@ MonoBehaviour:
     displayDurationSeconds: 6
     audioClip: {fileID: 0}
   enabled: 1
+  expectsResponse: 1
+  responseWindowSeconds: 20
+  responseOptions:
+  - {fileID: 11400000, guid: 35f8876b12aef6e46967edc3940c7c77, type: 2}
+  - {fileID: 11400000, guid: 8e9f11e4fa95cc948823697349e52e97, type: 2}
+  flagsSetIfIgnored:
+  - na_survivor_ignored

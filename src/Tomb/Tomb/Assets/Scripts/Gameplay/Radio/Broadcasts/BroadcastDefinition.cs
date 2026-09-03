@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Tomb.Gameplay.Radio.Responses;
 
 namespace Tomb.Gameplay.Radio.Broadcasts
 {
@@ -72,6 +73,22 @@ namespace Tomb.Gameplay.Radio.Broadcasts
         [SerializeField]
         private bool enabled = true;
 
+        [Header("Player Response")]
+        [SerializeField]
+        private bool expectsResponse;
+
+        [Min(0f)]
+        [SerializeField]
+        private float responseWindowSeconds = 20f;
+
+        [SerializeField]
+        private List<RadioResponseDefinition>
+            responseOptions = new();
+
+        [SerializeField]
+        private List<string>
+            flagsSetIfIgnored = new();
+
         public string BroadcastId => broadcastId;
 
         public string Title =>
@@ -113,6 +130,21 @@ namespace Tomb.Gameplay.Radio.Broadcasts
             TranscriptSegments => transcriptSegments;
 
         public bool Enabled => enabled;
+
+        public bool ExpectsResponse =>
+            expectsResponse;
+
+        public float ResponseWindowSeconds =>
+            Mathf.Max(
+                0f,
+                responseWindowSeconds
+            );
+
+        public IReadOnlyList<RadioResponseDefinition>
+            ResponseOptions => responseOptions;
+
+        public IReadOnlyList<string>
+            FlagsSetIfIgnored => flagsSetIfIgnored;
 
         public float EstimatedDurationSeconds
         {

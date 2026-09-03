@@ -7,6 +7,7 @@ using Tomb.Core.Events;
 using Tomb.Core.Services;
 using Tomb.Gameplay.Radio;
 using Tomb.Gameplay.Radio.Broadcasts;
+using Tomb.Gameplay.Radio.Responses;
 
 namespace Tomb.Presentation.Radio
 {
@@ -59,11 +60,29 @@ namespace Tomb.Presentation.Radio
         [SerializeField]
         private AudioSource radioAudioSource;
 
+        [Header("Responses")]
+        [SerializeField]
+        private GameObject responseArea;
+
+        [SerializeField]
+        private TMP_Text responseTimerText;
+
+        [SerializeField]
+        private Transform responseButtonContainer;
+
+        [SerializeField]
+        private RadioResponseButtonView responseButtonPrefab;
+
+        private RadioResponseSystem responseSystem;
+        private readonly List<RadioResponseButtonView> responseButtons = new();
+
         private EventBus eventBus;
         private RadioReceiverSystem receiverSystem;
 
         private void Start()
         {
+            responseArea.SetActive(false);
+
             try
             {
                 eventBus =
@@ -71,6 +90,9 @@ namespace Tomb.Presentation.Radio
 
                 receiverSystem =
                     CoreServices.Get<RadioReceiverSystem>();
+
+                responseSystem =
+                    CoreServices.Get<RadioResponseSystem>();
             }
             catch (System.Exception exception)
             {
@@ -131,6 +153,21 @@ namespace Tomb.Presentation.Radio
                 OnBroadcastCompleted
             );
 
+            eventBus.Subscribe<
+                RadioResponseWindowOpenedEvent>(
+                OnResponseWindowOpened
+            );
+
+            eventBus.Subscribe<
+                RadioResponseSelectedEvent>(
+                OnResponseSelected
+            );
+
+            eventBus.Subscribe<
+                RadioResponseExpiredEvent>(
+                OnResponseExpired
+            );
+
             Refresh();
         }
 
@@ -172,6 +209,14 @@ namespace Tomb.Presentation.Radio
                 {
                     StepUp();
                 }
+            }
+
+            if (responseSystem != null &&
+                responseSystem.IsWaiting)
+            {
+                responseTimerText.text =
+                    $"Response Window: " +
+                    $"{responseSystem.RemainingSeconds:0.0}s";
             }
         }
 
@@ -263,6 +308,95 @@ namespace Tomb.Presentation.Radio
                 1,
                 "Player radio control"
             );
+        }
+
+        private void OnResponseWindowOpened(
+    RadioResponseWindowOpenedEvent openedEvent)
+        {
+            BuildResponseOptions(
+                openedEvent.Broadcast
+            );
+        }
+
+        private void BuildResponseOptions(
+            BroadcastDefinition broadcast)
+        {
+            ClearResponseButtons();
+
+            responseArea.SetActive(true);
+
+            foreach (RadioResponseDefinition response
+                     in broadcast.ResponseOptions)
+            {
+                if (response == null)
+                    continue;
+
+                RadioResponseButtonView button =
+                    Instantiate(
+                        responseButtonPrefab,
+                        responseButtonContainer
+                    );
+
+                bool available =
+                    responseSystem.IsResponseAvailable(
+                        response
+                    );
+
+                button.Initialize(
+                    response,
+                    available,
+                    SelectResponse
+                );
+
+                responseButtons.Add(button);
+            }
+        }
+
+        private void SelectResponse(
+            RadioResponseDefinition response)
+        {
+            responseSystem.SelectResponse(response);
+        }
+
+        private void OnResponseSelected(
+            RadioResponseSelectedEvent selectedEvent)
+        {
+            transcriptText.text =
+                $"[RESPONSE SENT] " +
+                $"{selectedEvent.Response.DisplayText}";
+
+            HideResponseArea();
+        }
+
+        private void OnResponseExpired(
+            RadioResponseExpiredEvent expiredEvent)
+        {
+            transcriptText.text =
+                "[NO RESPONSE SENT]";
+
+            HideResponseArea();
+        }
+
+        private void HideResponseArea()
+        {
+            responseArea.SetActive(false);
+            ClearResponseButtons();
+        }
+
+        private void ClearResponseButtons()
+        {
+            foreach (RadioResponseButtonView button
+                     in responseButtons)
+            {
+                if (button != null)
+                {
+                    Destroy(
+                        button.gameObject
+                    );
+                }
+            }
+
+            responseButtons.Clear();
         }
 
         private void OnReceiverUpdated(
